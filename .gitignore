@@ -37,3 +37,7 @@ coverage
 # temp
 .cache
 .temp
+
+# local planning docs and reference images (not tracked)
+plans
+images

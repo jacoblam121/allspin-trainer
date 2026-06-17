@@ -1,0 +1,165 @@
+[
+  {
+    "id": "tsd-slot-001",
+    "title": "T-spin Double slot",
+    "category": "T-spin setups",
+    "tags": ["tsd", "b2b", "parity-fix"],
+    "source": "https://four.lol/methods/kaidan",
+    "ruleset": "tetrio-default",
+    "board": [
+      [
+        { "kind": "filled", "piece": "J" },
+        { "kind": "filled", "piece": "J" },
+        { "kind": "filled", "piece": "J" },
+        { "kind": "filled", "piece": "J" },
+        { "kind": "filled", "piece": "J" },
+        { "kind": "filled", "piece": "J" },
+        { "kind": "filled", "piece": "J" },
+        { "kind": "filled", "piece": "J" },
+        { "kind": "filled", "piece": "J" },
+        { "kind": "filled", "piece": "J" }
+      ],
+      [
+        { "kind": "filled", "piece": "J" },
+        { "kind": "filled", "piece": "J" },
+        { "kind": "filled", "piece": "J" },
+        { "kind": "filled", "piece": "J" },
+        { "kind": "filled", "piece": "J" },
+        { "kind": "filled", "piece": "J" },
+        { "kind": "filled", "piece": "J" },
+        { "kind": "filled", "piece": "J" },
+        { "kind": "filled", "piece": "J" },
+        { "kind": "filled", "piece": "J" }
+      ],
+      [
+        { "kind": "filled", "piece": "J" },
+        { "kind": "filled", "piece": "J" },
+        null,
+        null,
+        null,
+        null,
+        null,
+        { "kind": "filled", "piece": "J" },
+        { "kind": "filled", "piece": "J" },
+        { "kind": "filled", "piece": "J" }
+      ],
+      [
+        { "kind": "filled", "piece": "J" },
+        { "kind": "filled", "piece": "J" },
+        null,
+        { "kind": "filled", "piece": "O" },
+        null,
+        { "kind": "filled", "piece": "O" },
+        null,
+        { "kind": "filled", "piece": "J" },
+        { "kind": "filled", "piece": "J" },
+        { "kind": "filled", "piece": "J" }
+      ]
+    ],
+    "active": "T",
+    "hold": "I",
+    "queue": ["S", "Z", "L", "J", "O"],
+    "b2bActive": true,
+    "combo": 0,
+    "garbageHoleColumn": null,
+    "goal": "Drop the T into the 3-wide slot to clear a T-spin Double and preserve B2B.",
+    "acceptedSolutions": [
+      {
+        "id": "sol-1",
+        "label": "TSD into the slot",
+        "placements": [{ "piece": "T", "x": 3, "y": 3, "rotation": "0" }],
+        "explanation": "The T fills the 3-wide gap and the side overhangs make the last movement a rotation, scoring a T-spin Double that preserves back-to-back."
+      }
+    ],
+    "badTemptations": [
+      {
+        "label": "Skim the Z",
+        "explanation": "Skimming breaks B2B for low value and leaves the TSD slot unfilled, wasting the setup."
+      }
+    ]
+  },
+  {
+    "id": "stair-rebalance-001",
+    "title": "Staircase rebalance",
+    "category": "Stack balance",
+    "tags": ["stack-balance", "skim", "hole-access"],
+    "ruleset": "tetrio-default",
+    "board": [
+      [
+        { "kind": "garbage" },
+        { "kind": "garbage" },
+        { "kind": "garbage" },
+        { "kind": "garbage" },
+        { "kind": "garbage" },
+        { "kind": "garbage" },
+        { "kind": "garbage" },
+        { "kind": "garbage" },
+        { "kind": "garbage" },
+        { "kind": "garbage" }
+      ],
+      [
+        { "kind": "garbage" },
+        { "kind": "garbage" },
+        { "kind": "garbage" },
+        { "kind": "garbage" },
+        null,
+        { "kind": "garbage" },
+        { "kind": "garbage" },
+        { "kind": "garbage" },
+        { "kind": "garbage" },
+        { "kind": "garbage" }
+      ],
+      [
+        { "kind": "filled", "piece": "L" },
+        { "kind": "filled", "piece": "L" },
+        { "kind": "filled", "piece": "L" },
+        { "kind": "filled", "piece": "L" },
+        { "kind": "filled", "piece": "L" },
+        { "kind": "filled", "piece": "L" },
+        { "kind": "filled", "piece": "L" },
+        { "kind": "filled", "piece": "L" },
+        { "kind": "filled", "piece": "L" },
+        null
+      ],
+      [
+        { "kind": "filled", "piece": "L" },
+        { "kind": "filled", "piece": "L" },
+        { "kind": "filled", "piece": "L" },
+        { "kind": "filled", "piece": "L" },
+        { "kind": "filled", "piece": "L" },
+        { "kind": "filled", "piece": "L" },
+        { "kind": "filled", "piece": "L" },
+        { "kind": "filled", "piece": "L" },
+        null,
+        null
+      ],
+      [
+        { "kind": "filled", "piece": "L" },
+        { "kind": "filled", "piece": "L" },
+        { "kind": "filled", "piece": "L" },
+        { "kind": "filled", "piece": "L" },
+        { "kind": "filled", "piece": "L" },
+        { "kind": "filled", "piece": "L" },
+        null,
+        null,
+        null,
+        null
+      ]
+    ],
+    "active": "Z",
+    "hold": "T",
+    "queue": ["I", "J", "O", "S"],
+    "b2bActive": false,
+    "combo": 0,
+    "garbageHoleColumn": 4,
+    "goal": "Even the staircase with the queue while keeping the garbage hole (column 4) open.",
+    "acceptedSolutions": [
+      {
+        "id": "sol-1",
+        "label": "Skim to flatten the high side",
+        "placements": [],
+        "explanation": "Use the Z to skim the tall side and bring the stack toward flat without covering the garbage hole. Preserve hole access for clean downstack."
+      }
+    ]
+  }
+]
