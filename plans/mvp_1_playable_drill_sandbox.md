@@ -49,7 +49,7 @@ MVP 1 should deliver one coherent user loop:
 2. User selects or loads a drill.
 3. Trainer shows board, hold, queue, B2B state, and drill goal.
 4. User plays using familiar Tetris controls.
-5. User can reset, undo, mirror if available, show solution, and export fumen.
+5. User can reset, undo, show solution, and export fumen.
 6. Trainer can compare the played sequence against authored accepted solutions at a basic level.
 
 The first version does not need to rank alternatives or deeply explain board quality. It should support authored drill answers and explanations so curriculum work can begin before a full evaluator exists.
@@ -74,6 +74,8 @@ Reasons:
 - `tetris-fumen` should be used as an adapter rather than reinventing fumen encoding.
 
 React should not own the core game loop, engine transitions, or input timing. Use plain TypeScript engine/input objects driven by a deterministic loop, and let React render controls/panels while Canvas draws from engine snapshots.
+
+Add a small `GameLoop` or `loop` module that owns `requestAnimationFrame`, advances input/engine timing, exposes a drawable snapshot for Canvas each frame, and publishes state snapshots for React panels. The exact React sync cadence can be tuned during implementation; the important boundary is that React does not drive game rules.
 
 Do not adopt an entire open-source Tetris clone wholesale unless its license, architecture, and rules behavior are verified. It is acceptable to study implementations for ideas, but MVP 1 should own the core engine and input loop because later evaluator/search code needs predictable internal state.
 
@@ -102,7 +104,7 @@ Primary MVP 1 ruleset: **TETR.IO default**.
 Implement:
 
 - Standard 10-wide board.
-- 20 visible rows plus hidden spawn buffer internally.
+- Internal field is 10x40: 20 visible rows plus 20 hidden rows above.
 - Seven tetrominoes: `I`, `O`, `T`, `S`, `Z`, `J`, `L`.
 - SRS-like 90-degree rotation kicks.
 - TETR.IO default SRS+ 180 rotation kicks.
@@ -111,6 +113,7 @@ Implement:
 - Hard drop.
 - Soft drop.
 - Lock placement once a hard drop is performed.
+- Reject drill/start states where the active piece cannot spawn without collision.
 
 Out of scope for MVP 1:
 
@@ -122,6 +125,10 @@ Out of scope for MVP 1:
 - Perfect TETR.IO spin detection.
 
 Important: structure the ruleset code so later rulesets can be added. Do not hard-code rotation tables directly into UI or input code.
+
+Pin the SRS+ 180 kick data in a dedicated engine fixture/table file, with a header comment citing the exact source URL and retrieval date used during implementation. Rotation tests should assert specific `(dx, dy)` offsets for representative kicks, not only that a rotation eventually succeeds.
+
+Use the 10x40 field to give all pieces enough hidden spawn space. Exact spawn offsets may be refined against TETR.IO references during Sprint 2, but the chosen offsets must be centralized in the ruleset module and covered by spawn tests.
 
 ## 7. Handling And Keybind Requirements
 
@@ -151,9 +158,9 @@ Allow multiple physical keys per action if straightforward. At minimum, allow on
 Persist these settings:
 
 - `das`: delayed auto shift, in milliseconds.
-- `arr`: auto repeat rate, in milliseconds per repeated horizontal move. `0` should mean instant movement to the wall when held after DAS, if implementation time allows.
+- `arr`: auto repeat rate, in milliseconds per repeated horizontal move. `0` means instant movement to the wall when held after DAS and is required because it is the default.
 - `dcd`: directional change delay, in milliseconds.
-- `sdf`: soft drop factor or soft drop speed setting.
+- `sdf`: soft-drop speed in cells per second while soft drop is held. Gravity is out of scope for MVP 1, so soft drop is discrete repeated downward movement; `20` means one cell every 50ms.
 
 Recommended default settings:
 
@@ -177,6 +184,8 @@ Use a deterministic input controller:
 - Apply action priority and repeat timing in one input module.
 - Feed logical movement intents to the engine.
 - Keep input timing testable with a simulated clock.
+- When both left and right are held, the most-recently pressed direction wins; releasing it falls back to the other direction if it is still held.
+- On window blur or app focus loss, release all physical keys to prevent stuck DAS/soft-drop state.
 
 Avoid scattering `keydown`/`keyup` game logic throughout React components.
 
@@ -197,6 +206,8 @@ Represent at least:
 - Combo value if present in drill metadata.
 - Placement history for undo.
 - Current drill id.
+
+The MVP 1 implementation can use a single mutable engine instance for simplicity, but undo/reset history must store deep-copied snapshots before each lock. Do not depend on inverse operations for undo.
 
 The engine should expose pure or mostly pure operations for:
 
@@ -238,9 +249,9 @@ For MVP 1:
 - Clear complete lines.
 - Track whether a clear happened.
 - Track whether a clear is a Tetris.
-- Preserve a simple `b2bActive` boolean from drill state and update it for Tetris clears.
+- Treat `b2bActive` and `combo` as display-only drill metadata.
 
-Full T-spin/all-spin/B2B classification can be partial or stubbed in MVP 1, but the data model should leave room for it.
+Do not update B2B/combo state in MVP 1. Full T-spin/all-spin/B2B classification can be partial or stubbed in MVP 1, but active B2B updates should wait until classification exists.
 
 ## 9. Drill Format
 
@@ -252,12 +263,19 @@ Authored playable drills must specify an active piece. If a fumen import produce
 
 Playable board cells must be concrete: empty or occupied by a known piece/solid cell. Do not put wildcard or "don't care" cells in the engine board state; those belong in future pattern-mask data structures.
 
+`garbageHoleColumn` is metadata-only in MVP 1. The trainer should not simulate incoming garbage yet, but garbage cells in authored boards should render distinctly from colored piece cells.
+
 ### Recommended Type Shape
 
 ```ts
 type PieceId = "I" | "O" | "T" | "S" | "Z" | "J" | "L";
 
 type RulesetId = "tetrio-default";
+
+type BoardCell =
+  | null
+  | { kind: "garbage" }
+  | { kind: "filled"; piece: PieceId };
 
 type Drill = {
   id: string;
@@ -268,7 +286,7 @@ type Drill = {
   ruleset: RulesetId;
   board: BoardCell[][];
   active: PieceId;
-  hold?: PieceId | null;
+  hold: PieceId | null;
   queue: PieceId[];
   b2bActive?: boolean;
   combo?: number;
@@ -300,11 +318,15 @@ type DrillTemptation = {
 };
 ```
 
+Placement `x`/`y` coordinates are the engine piece-origin coordinates used by the piece offset table, not an arbitrary occupied cell. Use the same origin for engine state, authored solutions, and solution matching. Rotation states are `0`, `R`, `2`, and `L`.
+
+`queue[0]` is the next piece after the current active piece. Empty hold must be represented as `null` in JSON, not omitted.
+
 This shape may be refined during implementation, but keep these concepts:
 
 - Board state.
 - Required active piece for authored drills.
-- Queue and hold.
+- Queue and hold, with `queue[0]` as the next piece and `hold: null` for empty hold.
 - B2B metadata.
 - Goal text.
 - Accepted solution placements.
@@ -343,6 +365,8 @@ Implementation guidance:
 - Put all fumen code behind a `fumen` module.
 - The engine and drill modules should not depend directly on `tetris-fumen`.
 - If fumen import omits queue/hold/B2B, prompt the drill author or fill defaults in the UI/import flow later. For MVP 1, document the limitation clearly in code or UI.
+- If the engine uses bottom-origin `y`, keep any fumen top-origin conversion inside the fumen adapter.
+- If `tetris-fumen` type definitions are missing or incomplete, isolate local declaration/shim work inside the fumen module rather than leaking untyped imports across the app.
 
 ## 11. UI Requirements
 
@@ -401,6 +425,8 @@ Matching can start strict:
 - Same final rotation.
 - Same placement order.
 
+Hold actions are not matched directly in MVP 1. Matching compares the locked placement sequence only, so authored drills should list each accepted placement order as a separate `AcceptedSolution`.
+
 Later phases can add fuzzy matching, equivalent placements, board-after comparison, and evaluator-based acceptance.
 
 ## 13. Undo And Reset
@@ -412,8 +438,7 @@ Required:
 
 Implementation guidance:
 
-- Store immutable snapshots before each lock, or store enough placement history to reverse safely.
-- Prefer snapshot history in MVP 1 for simplicity.
+- Store deep-copied engine snapshots before each lock.
 - Keep history bounded if needed, but drills are short, so memory is not a concern.
 
 ## 14. Test Plan
@@ -426,6 +451,7 @@ Cover:
 
 - Board collision.
 - Spawn validity.
+- Spawn collision rejects invalid drill/start states.
 - Left/right/down movement.
 - Hard drop final position.
 - Line clear behavior.
@@ -442,7 +468,8 @@ Cover:
 - O piece rotation stability.
 - 180 rotation success in open space.
 - 180 rotation near walls.
-- At least several TETR.IO SRS+ 180 kick cases from reference data.
+- At least several TETR.IO SRS+ 180 kick cases from pinned reference data, asserting specific `(dx, dy)` offsets.
+- A known `ExpectedPlacement` origin resolves to the expected occupied cells.
 
 ### Input Tests
 
@@ -452,10 +479,11 @@ Cover:
 
 - DAS delay before repeated movement.
 - ARR repeat timing.
-- ARR `0` behavior if implemented.
+- ARR `0` instant-to-wall behavior.
 - DCD behavior when changing direction.
-- Soft drop timing/SDF.
-- Simultaneous left/right conflict behavior.
+- Soft drop timing/SDF as discrete cells-per-second movement.
+- Simultaneous left/right conflict behavior: most-recently pressed wins, with fallback on release.
+- Window blur releases all physical keys.
 - Custom keybind mapping.
 
 ### Drill/Fumen Tests
@@ -465,6 +493,7 @@ Cover:
 - Valid drill JSON parses.
 - Invalid drill JSON reports useful errors.
 - Accepted solution matching succeeds/fails correctly.
+- Integration test: load an `mvp1.json` drill, replay an accepted locked-placement sequence, assert success; replay a wrong sequence, assert failure.
 - Fumen import/export smoke test.
 
 ## 15. Acceptance Criteria
@@ -496,10 +525,14 @@ src/
     gameState.ts
     lineClear.ts
     history.ts
+    fixtures/
+      srsPlus180Kicks.ts
   input/
     keybinds.ts
     handling.ts
     inputController.ts
+  loop/
+    gameLoop.ts
   drills/
     drillTypes.ts
     drillLoader.ts

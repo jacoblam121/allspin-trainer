@@ -60,6 +60,8 @@ Keep the process lightweight, but establish these habits before the codebase gro
 - Add unit tests for engine, input timing, drill parsing, and solution matching as each area appears.
 - Validate drill JSON at runtime so bad drill data fails clearly.
 - Keep playable board cells concrete. Wildcards or "don't care" cells belong in later pattern-mask types, not engine board state.
+- Treat B2B/combo as display-only drill metadata until spin/B2B classification exists.
+- Pin SRS+ 180 kick data to a cited source and test specific kick offsets.
 - Keep a small acceptance checklist for each MVP/sprint instead of relying on memory.
 - Record major architecture decisions briefly in docs when they affect future work, especially ruleset behavior, drill format, and rendering/input choices.
 - Track third-party code and license notes before borrowing from open-source Tetris projects.
@@ -156,12 +158,12 @@ Do not let fumen round-tripping derail the deliverable. Fumen is an adapter, not
 
 Likely next deliverables:
 
-- MVP 2: better authored drill packs and curriculum structure.
-- MVP 3: spin classification and B2B classification.
+- MVP 2: hand-authored drill packs and curriculum structure.
+- MVP 3: placement enumeration, spin classification, and B2B classification.
 - MVP 4: evaluator v1 with simple heuristics.
-- MVP 5: pattern catalog and generated variants.
+- MVP 5: explanation panel, pattern catalog, and generated variants.
 
-The exact order can change once MVP 1 reveals what is hard in practice.
+This is a compact summary of `advanced_midgame_patterns_trainer_plan.md` section 11, not a replacement for it. The exact order can change once MVP 1 reveals what is hard in practice.
 
 ## Success Criteria
 
