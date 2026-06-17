@@ -81,6 +81,46 @@ Expected outcome:
 
 Keep this sprint boring. Do not start solving evaluator or curriculum problems here.
 
+### Sprint 0 Completion Notes
+
+Status: complete.
+
+Scaffolded:
+
+- Vite + React + TypeScript (strict) app. `npm run dev` serves on :5173.
+- Planned source folders created: `src/{engine,engine/fixtures,input,loop,drills/packs,fumen,ui,styles}`.
+- Minimal app shell in `src/App.tsx` renders board dimensions from `src/engine/constants.ts` (10x20 visible, 10x40 internal field).
+- Sample engine test in `src/engine/constants.test.ts` (2 passing) to prove the Vitest toolchain.
+
+Tooling (all wired into `package.json` scripts):
+
+- `npm run typecheck` — `tsc -b --noEmit` (strict, `noUnusedLocals/Parameters`, `noImplicitReturns`, `noImplicitOverride`).
+- `npm run lint` — ESLint flat config (`eslint.config.js`) with `typescript-eslint`, `react-hooks`, `react-refresh`.
+- `npm run format` / `format:check` — Prettier (`.prettierrc.json`, `.prettierignore`).
+- `npm run test` — Vitest (`vitest.config.ts`, `environment: node`, `globals: true`).
+- `npm run build` — `tsc -b && vite build` (passes).
+
+Dependencies installed:
+
+- Runtime: `react`, `react-dom`.
+- Dev: `typescript`, `vite`, `@vitejs/plugin-react`, `vitest`, `eslint`, `@eslint/js`, `typescript-eslint`, `eslint-plugin-react-hooks`, `eslint-plugin-react-refresh`, `globals`, `prettier`, `@types/react`, `@types/react-dom`, `@types/node`.
+- Fumen: `tetris-fumen@1.1.3` (MIT). Ships `index.d.ts` — no shim needed yet. Adapter not implemented in Sprint 0; deferred to Sprint 5 per plan.
+
+Decisions:
+
+- npm (not pnpm/yarn); `package-lock.json` committed.
+- `tsconfig.json` uses project references (`tsconfig.app.json` + `tsconfig.node.json`) per Vite convention.
+- Vitest uses `node` environment for engine/input tests; UI tests (if added later) can opt into `jsdom` per-file.
+- `AGENTS.md` added at repo root with verify commands and architecture boundaries (mirrors this plan).
+
+Verify commands run (all passed): `npm run typecheck`, `npm run lint`, `npm run format:check`, `npm run test` (2 passed), `npm run build`, `npm run dev` (booted).
+
+Known limitations / follow-ups:
+
+- No engine logic yet beyond constants — Sprint 2.
+- No fumen adapter implementation — Sprint 5.
+- `tsconfig.app.json` sets `exactOptionalPropertyTypes: false` for now; revisit when drill types are authored (drill format uses optional fields heavily).
+
 ## Sprint 1: Static Trainer Shell
 
 Goal: make the trainer visible before making it fully playable.
