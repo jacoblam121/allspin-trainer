@@ -57,7 +57,7 @@
       ]
     ],
     "active": "T",
-    "hold": "I",
+    "hold": null,
     "queue": ["S", "Z", "L", "J", "O"],
     "b2bActive": true,
     "combo": 0,
@@ -147,7 +147,7 @@
       ]
     ],
     "active": "Z",
-    "hold": "T",
+    "hold": null,
     "queue": ["I", "J", "O", "S"],
     "b2bActive": false,
     "combo": 0,

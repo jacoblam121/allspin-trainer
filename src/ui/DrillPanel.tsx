@@ -1,4 +1,5 @@
 import type { Drill } from "../drills/drillTypes.ts";
+import type { Phase } from "../loop/gameLoop.ts";
 
 export function DrillPanel({
   drills,
@@ -8,6 +9,8 @@ export function DrillPanel({
   showSolution,
   onShowSolution,
   onReset,
+  onUndo,
+  phase,
 }: {
   drills: Drill[];
   drill: Drill;
@@ -16,6 +19,8 @@ export function DrillPanel({
   showSolution: boolean;
   onShowSolution: () => void;
   onReset: () => void;
+  onUndo: () => void;
+  phase: Phase;
 }) {
   const b2b = drill.b2bActive === true;
   const combo = drill.combo ?? 0;
@@ -40,6 +45,18 @@ export function DrillPanel({
         <div className="drill-panel__actions">
           <button type="button" onClick={onShowSolution}>
             {showSolution ? "Hide solution" : "Show solution"}
+          </button>
+          <button
+            type="button"
+            onClick={onUndo}
+            disabled={phase === "topOutResetOnly"}
+            title={
+              phase === "topOutResetOnly"
+                ? "Undo unavailable: this top-out pushed no history. Press Reset."
+                : undefined
+            }
+          >
+            Undo
           </button>
           <button
             type="button"

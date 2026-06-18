@@ -13,15 +13,21 @@ export function PiecePreview({
   return (
     <div className="preview">
       <span className="preview__label">{label}</span>
-      <div
-        className="preview__grid"
-        style={{ gridTemplateColumns: `repeat(${cols}, var(--preview-cell))` }}
-      >
-        {grid === null
-          ? Array.from({ length: 16 }).map((_, i) => (
+      <div className="preview__box">
+        {grid === null ? (
+          <div className="preview__empty-grid">
+            {Array.from({ length: 8 }).map((_, i) => (
               <div className="preview__cell" key={i} />
-            ))
-          : grid.flatMap((row, y) =>
+            ))}
+          </div>
+        ) : (
+          <div
+            className="preview__grid"
+            style={{
+              gridTemplateColumns: `repeat(${cols}, var(--preview-cell))`,
+            }}
+          >
+            {grid.flatMap((row, y) =>
               row.map((occupied, x) => (
                 <div
                   key={`${x}-${y}`}
@@ -31,6 +37,8 @@ export function PiecePreview({
                 />
               )),
             )}
+          </div>
+        )}
       </div>
     </div>
   );

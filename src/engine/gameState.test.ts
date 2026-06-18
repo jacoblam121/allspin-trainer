@@ -9,6 +9,7 @@ import {
   rotateCcw,
   rotate180,
   hardDrop,
+  hardDropAndLock,
   lock,
   hold,
   undo,
@@ -70,21 +71,21 @@ describe("createEngineFromDrill", () => {
     expect(state.initial.active?.piece).toBe("I");
   });
 
-  it("spawns I so its lowest cell sits at y=38 in the hidden buffer", () => {
+  it("spawns I so its lowest cell sits at y=20 in the visible spawn buffer", () => {
     const state = spawnEngine("I");
     const cells = cellsOf("I", "0", state.active!.x, state.active!.y);
     const minY = Math.min(...cells.map((c) => c.y));
     const maxY = Math.max(...cells.map((c) => c.y));
-    expect(minY).toBe(38);
-    expect(maxY).toBe(38);
+    expect(minY).toBe(20);
+    expect(maxY).toBe(20);
     expect(cells.map((c) => c.x).sort()).toEqual([3, 4, 5, 6]);
   });
 
-  it("spawns O so its lowest cell sits at y=38, centered at x=4,5", () => {
+  it("spawns O so its lowest cell sits at y=20, centered at x=4,5", () => {
     const state = spawnEngine("O");
     const cells = cellsOf("O", "0", state.active!.x, state.active!.y);
     const minY = Math.min(...cells.map((c) => c.y));
-    expect(minY).toBe(38);
+    expect(minY).toBe(20);
     expect([...new Set(cells.map((c) => c.x))].sort()).toEqual([4, 5]);
   });
 
@@ -113,13 +114,13 @@ describe("createEngineFromDrill", () => {
   });
 
   it("rejects spawn collision when the spawn cells overlap filled cells", () => {
-    // Build a field with a full row at y=38 (the I spawn row) so spawn collides.
+    // Build a field with a full row at y=20 (the I spawn row) so spawn collides.
     const fullRow: BoardCell[] = new Array(10).fill(null).map(() => ({
       kind: "filled",
       piece: "O",
     }));
     const board: BoardCell[][] = [];
-    for (let i = 0; i < 38; i++) board.push(emptyRow());
+    for (let i = 0; i < 20; i++) board.push(emptyRow());
     board.push(fullRow);
     const drillAtSpawn = makeDrill({ board, active: "I" });
     const result = createEngineFromDrill(drillAtSpawn);
@@ -206,7 +207,7 @@ describe("engine movement", () => {
   });
 
   it("moveDown fails at the floor without mutating state", () => {
-    const state = spawnEngine("O"); // O lowest cell dy=0, origin y=38
+    const state = spawnEngine("O"); // O lowest cell dy=0, origin y=20
     hardDrop(state); // O drops to origin.y=0 (cells y=0,1)
     expect(state.active!.y).toBe(0);
     const res = moveDown(state); // origin.y=-1 -> cells y=-1 collide
@@ -325,8 +326,8 @@ describe("engine basic rotation (open space, no kicks)", () => {
     // Now spawn J at (0,0): cells (0,1),(1,1),(2,1),(0,2) - all empty? (0,1) yes,
     // (1,1) yes, (2,1) yes, (0,2) yes. Good.
     const drill = makeDrill({ board, active: "J" });
-    // But J spawns at SPAWN_ORIGIN (3,37), not (0,0). We can't directly place J
-    // at (0,0) via the constructor. Instead, use a field where J's spawn (3,37)
+    // But J spawns at SPAWN_ORIGIN, not (0,0). We can't directly place J
+    // at (0,0) via the constructor. Instead, use a field where J's spawn
     // is open, then hard-drop + move to corner. That's complex. Simpler: test
     // the rotation-blocked path via a piece already wedged using moveDown to
     // the floor and left wall, then rotate into the wall.
@@ -416,11 +417,13 @@ describe("engine hard drop and lock", () => {
   });
 
   it("lock rejects when a cell is above the field (lock out, no throw)", () => {
-    // I spawns at (3,37). rotateCw -> I "R" cells include (5,40) (y=40 is
-    // above FIELD_HEIGHT=40). collides() treats above-field as open air, so
+    // Place I near the top of the internal field, then rotateCw so I "R" cells
+    // include (5,40) (y=40 is above FIELD_HEIGHT=40). collides() treats
+    // above-field as open air, so
     // without an explicit guard lockCells would write field[40] (undefined)
     // and throw. lock() must reject the command without mutating state.
     const state = spawnEngine("I");
+    state.active!.y = 37;
     rotateCw(state); // I "R", cells (5,37),(5,38),(5,39),(5,40)
     const beforeField = state.field.map((r) => r.slice());
     const beforeActive = { ...state.active! };
@@ -525,17 +528,22 @@ describe("engine hold (Sprint 2B)", () => {
   });
 
   it("hold with occupied hold swaps active and hold", () => {
-    const drill = makeDrill({ active: "I", hold: "L", queue: ["T"] });
+    const drill = makeDrill({ active: "I", hold: null, queue: ["L", "T"] });
     const result = createEngineFromDrill(drill);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     const state = result.state;
-    expect(state.hold).toBe("L");
+    expect(hold(state).ok).toBe(true); // I -> hold, L active
+    expect(state.hold).toBe("I");
+    expect(hardDropAndLock(state).ok).toBe(true); // T active, canHold restored
+    expect(state.active!.piece).toBe("T");
+    expect(state.hold).toBe("I");
+
     const res = hold(state);
     expect(res.ok).toBe(true);
-    expect(state.hold).toBe("I"); // active went to hold
-    expect(state.active!.piece).toBe("L"); // hold came out
-    expect(state.queue).toEqual(["T"]); // queue unchanged
+    expect(state.hold).toBe("T"); // active went to hold
+    expect(state.active!.piece).toBe("I"); // hold came out
+    expect(state.queue).toEqual([]); // queue unchanged
     expect(state.canHold).toBe(false);
   });
 
@@ -682,6 +690,49 @@ describe("engine undo (Sprint 2B)", () => {
     expect(state.history).toHaveLength(0);
   });
 
+  it("hardDropAndLock undo restores the first placement to the pre-placement state", () => {
+    const drill = makeDrill({ active: "O", hold: null, queue: ["T"] });
+    const result = createEngineFromDrill(drill);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const state = result.state;
+    const before = snapshot(state);
+
+    const placed = hardDropAndLock(state);
+    expect(placed.ok).toBe(true);
+    expect(state.active!.piece).toBe("T");
+    expect(state.history).toHaveLength(1);
+
+    const res = undo(state);
+    expect(res.ok).toBe(true);
+    expect(state.active).toEqual(before.active);
+    expect(state.queue).toEqual(before.queue);
+    expect(state.hold).toBe(before.hold);
+    expect(state.field).toEqual(before.field);
+    expect(state.history).toHaveLength(0);
+  });
+
+  it("hardDropAndLock history captures moves before hard drop but not the grounded intermediate", () => {
+    const drill = makeDrill({ active: "T", hold: null, queue: ["I"] });
+    const result = createEngineFromDrill(drill);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const state = result.state;
+    moveLeft(state);
+    rotateCw(state);
+    const beforePlacement = snapshot(state);
+
+    const placed = hardDropAndLock(state);
+    expect(placed.ok).toBe(true);
+    expect(state.active!.piece).toBe("I");
+
+    const res = undo(state);
+    expect(res.ok).toBe(true);
+    expect(state.active).toEqual(beforePlacement.active);
+    expect(state.field).toEqual(beforePlacement.field);
+    expect(state.queue).toEqual(beforePlacement.queue);
+  });
+
   it("undo restores canHold after a hold-then-lock sequence", () => {
     const drill = makeDrill({ active: "I", hold: null, queue: ["T", "S"] });
     const result = createEngineFromDrill(drill);
@@ -745,28 +796,28 @@ describe("engine reset (Sprint 2B)", () => {
 
 describe("engine terminal status:blocked (Sprint 2B)", () => {
   it("post-lock spawn collision sets terminal status:blocked", () => {
-    // Build a field where I can spawn (top of hidden buffer open) but after I
+    // Build a field where I can spawn (spawn buffer open) but after I
     // locks, the next queue piece (T) spawn collides because the spawn row is
-    // filled. Fill row y=38 (T spawn row) columns 3,4,5 (T"0" cells at spawn
-    // origin (3,37): (3,38),(4,38),(5,38),(4,39)). Fill (3,38),(4,38),(5,38)
-    // and (4,39) so T spawn collides. But I must still be able to spawn and
-    // lock first. I spawns at (3,37): cells (3,38),(4,38),(5,38),(6,38). If
+    // filled. Fill row y=20 (T spawn row) columns 3,4,5 (T"0" cells at spawn
+    // origin (3,19): (3,20),(4,20),(5,20),(4,21)). Fill (3,20),(4,20),(5,20)
+    // and (4,21) so T spawn collides. But I must still be able to spawn and
+    // lock first. I spawns at (3,19): cells (3,20),(4,20),(5,20),(6,20). If
     // those are filled, I can't spawn. Conflict.
     // Instead: let I spawn in open air, lock it at the BOTTOM (far from spawn
-    // row), THEN have the next piece's spawn row filled. Fill row 38 cols 3-6
+    // row), THEN have the next piece's spawn row filled. Fill row 20 cols 3-6
     // AFTER I spawns — but we can't modify the field mid-engine. Instead,
-    // author a board where row 38 is filled but I's spawn cells at row 38 are
-    // NOT (so I spawns fine), and T's spawn cells at row 38 ARE filled.
-    // I"0" spawn cells: (3,38),(4,38),(5,38),(6,38). T"0" spawn cells:
-    // (3,38),(4,38),(5,38),(4,39). Overlap on (3,38),(4,38),(5,38). Can't fill
+    // author a board where row 20 is filled but I's spawn cells at row 20 are
+    // NOT (so I spawns fine), and T's spawn cells at row 20 ARE filled.
+    // I"0" spawn cells: (3,20),(4,20),(5,20),(6,20). T"0" spawn cells:
+    // (3,20),(4,20),(5,20),(4,21). Overlap on (3,20),(4,20),(5,20). Can't fill
     // T's spawn without filling I's. Use a different next piece. O spawns at
-    // (4,38): cells (4,38),(5,38),(4,39),(5,39). Fill (4,39),(5,39) (not I's
-    // spawn cells at y=38) -> O spawn collides, I spawn fine.
+    // (4,20): cells (4,20),(5,20),(4,21),(5,21). Fill (4,21),(5,21) (not I's
+    // spawn cells at y=20) -> O spawn collides, I spawn fine.
     const board: BoardCell[][] = [];
     for (let i = 0; i < FIELD_HEIGHT; i++) board.push(emptyRow());
-    // Block O's spawn (rows 39 cols 4,5) without blocking I's spawn (row 38).
-    board[39][4] = { kind: "filled", piece: "X" as never };
-    board[39][5] = { kind: "filled", piece: "X" as never };
+    // Block O's spawn (row 21 cols 4,5) without blocking I's spawn (row 20).
+    board[21][4] = { kind: "filled", piece: "X" as never };
+    board[21][5] = { kind: "filled", piece: "X" as never };
     const drill = makeDrill({ board, active: "I", hold: null, queue: ["O"] });
     const result = createEngineFromDrill(drill);
     expect(result.ok).toBe(true);
@@ -785,8 +836,8 @@ describe("engine terminal status:blocked (Sprint 2B)", () => {
   it("once blocked, further commands return ok:false without mutating", () => {
     const board: BoardCell[][] = [];
     for (let i = 0; i < FIELD_HEIGHT; i++) board.push(emptyRow());
-    board[39][4] = { kind: "filled", piece: "X" as never };
-    board[39][5] = { kind: "filled", piece: "X" as never };
+    board[21][4] = { kind: "filled", piece: "X" as never };
+    board[21][5] = { kind: "filled", piece: "X" as never };
     const drill = makeDrill({ board, active: "I", hold: null, queue: ["O"] });
     const result = createEngineFromDrill(drill);
     expect(result.ok).toBe(true);
@@ -824,8 +875,8 @@ describe("engine terminal status:blocked (Sprint 2B)", () => {
   it("undo can recover from terminal blocked (restores pre-lock snapshot)", () => {
     const board: BoardCell[][] = [];
     for (let i = 0; i < FIELD_HEIGHT; i++) board.push(emptyRow());
-    board[39][4] = { kind: "filled", piece: "X" as never };
-    board[39][5] = { kind: "filled", piece: "X" as never };
+    board[21][4] = { kind: "filled", piece: "X" as never };
+    board[21][5] = { kind: "filled", piece: "X" as never };
     const drill = makeDrill({ board, active: "I", hold: null, queue: ["O"] });
     const result = createEngineFromDrill(drill);
     expect(result.ok).toBe(true);

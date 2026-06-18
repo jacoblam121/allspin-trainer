@@ -96,6 +96,11 @@ describe("loadDrillPack", () => {
     expect(() => loadDrillPack([d])).toThrow(/active.*expected piece id/);
   });
 
+  it("rejects non-null starting hold", () => {
+    const d = cloneDrill({ hold: "I" });
+    expect(() => loadDrillPack([d])).toThrow(/starting hold must be null/);
+  });
+
   it("rejects an unsupported ruleset", () => {
     const d = cloneDrill({ ruleset: "srs-x" });
     expect(() => loadDrillPack([d])).toThrow(/unsupported ruleset/);

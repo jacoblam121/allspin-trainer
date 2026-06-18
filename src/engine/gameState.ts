@@ -315,7 +315,10 @@ export function hold(state: EngineState): EngineCommandResult {
 //      has simply exhausted the queue; status stays "active" until a spawn
 //      collision actually occurs).
 //   6. If the next piece's spawn collides, set terminal status:"blocked".
-export function lock(state: EngineState): EngineCommandResult {
+function lockWithHistory(
+  state: EngineState,
+  historySnapshot: EngineSnapshot,
+): EngineCommandResult {
   const blocked = requireActive(state);
   if (blocked) return blocked;
   const active = state.active!;
@@ -324,8 +327,8 @@ export function lock(state: EngineState): EngineCommandResult {
     return fail(state, "lock position collides");
   }
   // Reject lock if any active cell is above the field (y >= FIELD_HEIGHT).
-  // `collides` treats above-field as open air so pieces can rotate there (e.g.
-  // vertical I at spawn reaches y=40), but the field array has no rows beyond
+  // `collides` treats above-field as open air so pieces can rotate there, but
+  // the field array has no rows beyond
   // FIELD_HEIGHT-1 and lockCells would throw on `field[40]`. This is a "lock
   // out" condition: the command is rejected without mutating state. Terminal
   // status:"blocked" is reserved for post-lock spawn collision per plan §8;
@@ -337,7 +340,7 @@ export function lock(state: EngineState): EngineCommandResult {
   }
 
   // 1. Push pre-lock snapshot for undo.
-  state.history.push(snapshot(state));
+  state.history.push(historySnapshot);
 
   // 2. Lock cells.
   lockCells(state.field, cells, active.piece);
@@ -359,6 +362,23 @@ export function lock(state: EngineState): EngineCommandResult {
   // If the queue is empty, active stays null and status stays "active" — the
   // player has run out of pieces, which is not a top-out per plan §8.
   return ok(state);
+}
+
+export function lock(state: EngineState): EngineCommandResult {
+  return lockWithHistory(state, snapshot(state));
+}
+
+// Atomic gameplay placement: hard-drop the active piece and lock it while
+// storing undo history from before the placement command. This keeps user
+// Undo placement-level: one Undo restores the state from before pressing
+// hard drop, not the intermediate grounded active piece.
+export function hardDropAndLock(state: EngineState): EngineCommandResult {
+  const prePlacement = snapshot(state);
+  const dropped = hardDrop(state);
+  if (!dropped.ok) {
+    return dropped;
+  }
+  return lockWithHistory(state, prePlacement);
 }
 
 // Undo (plan §8): pop the top pre-lock snapshot from history and restore

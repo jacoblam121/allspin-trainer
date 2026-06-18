@@ -76,10 +76,10 @@ function parseDrill(value: unknown, index: number): Drill {
   }
 
   const active = parsePieceId(d.active, `${path}.active`);
-  if (d.hold !== null && !isPieceId(d.hold)) {
-    fail(`${path}.hold`, `expected piece id or null, got '${String(d.hold)}'`);
+  if (d.hold !== null) {
+    fail(`${path}.hold`, "starting hold must be null");
   }
-  const hold = d.hold as Drill["hold"];
+  const hold = null;
 
   const queue = requireArray(d.queue, `${path}.queue`).map((p, i) =>
     parsePieceId(p, `${path}.queue[${i}]`),

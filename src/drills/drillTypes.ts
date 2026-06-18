@@ -36,7 +36,7 @@ export type Drill = {
   ruleset: RulesetId;
   board: BoardCell[][];
   active: PieceId;
-  hold: PieceId | null;
+  hold: null;
   queue: PieceId[];
   b2bActive?: boolean;
   combo?: number;

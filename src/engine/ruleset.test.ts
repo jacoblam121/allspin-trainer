@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { VISIBLE_HEIGHT, VISIBLE_SPAWN_ROWS } from "./constants.ts";
 import {
   SPAWN_ORIGIN,
   CW_NEXT,
@@ -43,12 +44,12 @@ function resolve(
 }
 
 describe("ruleset SPAWN_ORIGIN", () => {
-  it("places every piece's lowest cell at y=38 in the hidden buffer", () => {
+  it("places every piece's lowest cell at y=20 in the visible spawn buffer", () => {
     for (const id of ["I", "O", "T", "S", "Z", "J", "L"] as PieceId[]) {
       const o = SPAWN_ORIGIN[id];
       const cells = cellsOf(id, "0", o.x, o.y);
       const minY = Math.min(...cells.map((c) => c.y));
-      expect(minY).toBe(38);
+      expect(minY).toBe(VISIBLE_HEIGHT);
     }
   });
 
@@ -57,6 +58,28 @@ describe("ruleset SPAWN_ORIGIN", () => {
       expect(SPAWN_ORIGIN[id].x).toBe(3);
     }
     expect(SPAWN_ORIGIN.O.x).toBe(4);
+  });
+
+  it("fits every spawn orientation within the three rendered spawn rows", () => {
+    const maxRenderedY = VISIBLE_HEIGHT + VISIBLE_SPAWN_ROWS - 1;
+    for (const id of ["I", "O", "T", "S", "Z", "J", "L"] as PieceId[]) {
+      const o = SPAWN_ORIGIN[id];
+      const ys = cellsOf(id, "0", o.x, o.y).map((c) => c.y);
+      expect(Math.min(...ys)).toBeGreaterThanOrEqual(VISIBLE_HEIGHT);
+      expect(Math.max(...ys)).toBeLessThanOrEqual(maxRenderedY);
+    }
+  });
+
+  it("keeps I visible in the rendered spawn window after a spawn rotation", () => {
+    const o = SPAWN_ORIGIN.I;
+    const result = resolve("I", "0", "cw", o.x, o.y, []);
+    expect(result).not.toBeNull();
+    const cells = cellsOf("I", result!.rotation, result!.x, result!.y);
+    const ys = cells.map((c) => c.y);
+    expect(Math.min(...ys)).toBeGreaterThanOrEqual(VISIBLE_HEIGHT - 1);
+    expect(Math.max(...ys)).toBeLessThanOrEqual(
+      VISIBLE_HEIGHT + VISIBLE_SPAWN_ROWS - 1,
+    );
   });
 });
 

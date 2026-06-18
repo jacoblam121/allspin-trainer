@@ -23,21 +23,22 @@ import {
 
 // --- Spawn origin (plan §6) ------------------------------------------------
 //
-// Pieces spawn in the hidden buffer (rows 20..39). x=3 for I/J/L/S/T/Z (the
-// 3- and 4-wide pieces lean left per SRS), x=4 for O. y is chosen so the
-// piece's lowest occupied cell sits at y=38. For floating pieces (I/J/L/S/T/Z
-// occupy dy=1 as their lowest row in their spawn grid), origin y=37 gives
-// lowest cell y=38. For O (lowest dy=0), origin y=38 gives lowest cell y=38.
+// Pieces spawn in the visible spawn buffer above the 20-row board. x=3 for
+// I/J/L/S/T/Z (the 3- and 4-wide pieces lean left per SRS), x=4 for O. y is
+// chosen so the piece's lowest occupied cell sits at y=20, entering the
+// playable board after one gravity step. For floating pieces (I/J/L/S/T/Z
+// occupy dy=1 as their lowest row in their spawn grid), origin y=19 gives
+// lowest cell y=20. For O (lowest dy=0), origin y=20 gives lowest cell y=20.
 //
 // Verified by spawn tests in gameState.test.ts (2A) and ruleset.test.ts (2B).
 export const SPAWN_ORIGIN: Record<PieceId, { x: number; y: number }> = {
-  I: { x: 3, y: 37 },
-  O: { x: 4, y: 38 },
-  T: { x: 3, y: 37 },
-  S: { x: 3, y: 37 },
-  Z: { x: 3, y: 37 },
-  J: { x: 3, y: 37 },
-  L: { x: 3, y: 37 },
+  I: { x: 3, y: 19 },
+  O: { x: 4, y: 20 },
+  T: { x: 3, y: 19 },
+  S: { x: 3, y: 19 },
+  Z: { x: 3, y: 19 },
+  J: { x: 3, y: 19 },
+  L: { x: 3, y: 19 },
 };
 
 // --- Rotation state transitions -------------------------------------------
