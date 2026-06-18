@@ -181,4 +181,37 @@ describe("loadDrillPack", () => {
       /expected non-negative integer, got -1/,
     );
   });
+
+  it("rejects an empty drill pack", () => {
+    expect(() => loadDrillPack([])).toThrow(
+      /drills: pack must contain at least one drill/,
+    );
+  });
+
+  it("rejects duplicate drill ids with an id-specific error", () => {
+    const a = cloneDrill({ id: "dup-001" });
+    const b = cloneDrill({
+      id: "dup-001",
+      acceptedSolutions: [
+        {
+          id: "sol-b",
+          label: "B",
+          placements: [{ piece: "T", x: 2, y: 0, rotation: "0" }],
+          explanation: "B",
+        },
+      ],
+    });
+    expect(() => loadDrillPack([a, b])).toThrow(
+      /drills\[1\]\.id: duplicate drill id 'dup-001' \(also at drills\[0\]\)/,
+    );
+  });
+
+  it("rejects a duplicate id even when the first id appears later", () => {
+    const a = cloneDrill({ id: "first" });
+    const b = cloneDrill({ id: "second" });
+    const c = cloneDrill({ id: "first" });
+    expect(() => loadDrillPack([a, b, c])).toThrow(
+      /drills\[2\]\.id: duplicate drill id 'first' \(also at drills\[0\]\)/,
+    );
+  });
 });

@@ -224,5 +224,21 @@ function parseCombo(value: unknown, path: string): number | undefined {
 
 export function loadDrillPack(input: unknown): DrillPack {
   const arr = requireArray(input, "drills");
-  return arr.map((d, i) => parseDrill(d, i));
+  if (arr.length === 0) {
+    fail("drills", "pack must contain at least one drill");
+  }
+  const parsed = arr.map((d, i) => parseDrill(d, i));
+  const seenIds = new Map<string, number>();
+  for (let i = 0; i < parsed.length; i++) {
+    const id = parsed[i].id;
+    const prior = seenIds.get(id);
+    if (prior !== undefined) {
+      fail(
+        `drills[${i}].id`,
+        `duplicate drill id '${id}' (also at drills[${prior}])`,
+      );
+    }
+    seenIds.set(id, i);
+  }
+  return parsed;
 }

@@ -687,3 +687,59 @@ body {
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+/* --- Sprint 5: Tools / Fumen export --- */
+
+.tools {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border-top: 1px solid var(--panel-border);
+  padding-top: 0.6rem;
+}
+
+.tools__heading {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--accent);
+}
+
+.tools__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tools__output {
+  width: 100%;
+  min-height: 4.5rem;
+  max-height: 9rem;
+  background: #050507;
+  color: #eee;
+  border: 1px solid var(--panel-border);
+  padding: 0.45rem 0.55rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  resize: vertical;
+  overflow-wrap: anywhere;
+  word-break: break-all;
+  white-space: pre-wrap;
+}
+
+.tools__output::placeholder {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.tools__copy-status {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.tools__error {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #ef7a7a;
+}

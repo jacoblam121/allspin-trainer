@@ -72,7 +72,9 @@ function activeCellsOf(active: ActivePiece): Coord[] {
 
 // Lowest valid y for the active piece at its current x/rotation: the largest y
 // such that the piece does not collide. Used for both hardDrop and ghost cells.
-function lowestValidY(
+// Exported so drill-pack smoke tests can assert authored placement origins are
+// the grounded hard-drop origin (Sprint 5 follow-up).
+export function lowestValidY(
   field: Field,
   piece: PieceId,
   rotation: RotationState,

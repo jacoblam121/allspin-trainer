@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { Drill } from "../drills/drillTypes.ts";
 import type { LoopMatchResult, Phase } from "../loop/gameLoop.ts";
 
@@ -26,6 +27,9 @@ export function DrillPanel({
   onUndo,
   phase,
   matchResult,
+  exportedCode,
+  exportError,
+  onExportFumen,
 }: {
   drills: Drill[];
   drill: Drill;
@@ -37,10 +41,52 @@ export function DrillPanel({
   onUndo: () => void;
   phase: Phase;
   matchResult: LoopMatchResult | null;
+  exportedCode: string;
+  exportError: string | null;
+  onExportFumen: () => void;
 }) {
   const b2b = drill.b2bActive === true;
   const combo = drill.combo ?? 0;
   const hole = drill.garbageHoleColumn;
+  const [copyState, setCopyState] = useState<"idle" | "copied" | "manual">(
+    "idle",
+  );
+
+  // Reset copy status whenever the export output or error changes (new export,
+  // drill change, or error). Otherwise stale "Copied to clipboard" / manual-copy
+  // guidance can outlive the code it referred to. Uses the set-state-during-
+  // render pattern (with a prev-state guard) instead of a useEffect, per the
+  // react-hooks/set-state-in-effect lint rule (same pattern Sprint 3B used for
+  // SettingsPanel form-state sync).
+  const [prevExportState, setPrevExportState] = useState({
+    code: exportedCode,
+    error: exportError,
+  });
+  if (
+    exportedCode !== prevExportState.code ||
+    exportError !== prevExportState.error
+  ) {
+    setPrevExportState({ code: exportedCode, error: exportError });
+    setCopyState("idle");
+  }
+
+  async function handleCopy() {
+    if (exportedCode === "") return;
+    if (
+      typeof navigator !== "undefined" &&
+      navigator.clipboard !== undefined &&
+      typeof navigator.clipboard.writeText === "function"
+    ) {
+      try {
+        await navigator.clipboard.writeText(exportedCode);
+        setCopyState("copied");
+        return;
+      } catch {
+        // Fall through to manual-copy guidance.
+      }
+    }
+    setCopyState("manual");
+  }
 
   return (
     <section className="drill-panel">
@@ -170,6 +216,45 @@ export function DrillPanel({
             Press “Show solution” to reveal the accepted line and explanation.
           </p>
         )}
+      </div>
+
+      <div className="tools">
+        <h3 className="tools__heading">Tools</h3>
+        <div className="tools__row">
+          <button type="button" onClick={onExportFumen}>
+            Export fumen
+          </button>
+          <button
+            type="button"
+            onClick={handleCopy}
+            disabled={exportedCode === ""}
+          >
+            Copy code
+          </button>
+        </div>
+        <textarea
+          className="tools__output"
+          value={exportedCode}
+          readOnly
+          placeholder="Click 'Export fumen' to generate a code for the current locked board."
+          spellCheck={false}
+          rows={3}
+        />
+        {copyState === "copied" ? (
+          <p className="tools__copy-status" role="status">
+            Copied to clipboard.
+          </p>
+        ) : null}
+        {copyState === "manual" ? (
+          <p className="tools__copy-status" role="status">
+            Copy unavailable: select and copy the code above manually.
+          </p>
+        ) : null}
+        {exportError !== null ? (
+          <p className="tools__error" role="alert">
+            Export failed: {exportError}
+          </p>
+        ) : null}
       </div>
     </section>
   );

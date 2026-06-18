@@ -1,86 +1,7 @@
 [
   {
-    "id": "tsd-slot-001",
-    "title": "T-spin Double slot",
-    "category": "T-spin setups",
-    "tags": ["tsd", "b2b", "parity-fix"],
-    "source": "https://four.lol/methods/kaidan",
-    "ruleset": "tetrio-default",
-    "board": [
-      [
-        { "kind": "filled", "piece": "J" },
-        { "kind": "filled", "piece": "J" },
-        { "kind": "filled", "piece": "J" },
-        { "kind": "filled", "piece": "J" },
-        { "kind": "filled", "piece": "J" },
-        { "kind": "filled", "piece": "J" },
-        { "kind": "filled", "piece": "J" },
-        { "kind": "filled", "piece": "J" },
-        { "kind": "filled", "piece": "J" },
-        { "kind": "filled", "piece": "J" }
-      ],
-      [
-        { "kind": "filled", "piece": "J" },
-        { "kind": "filled", "piece": "J" },
-        { "kind": "filled", "piece": "J" },
-        { "kind": "filled", "piece": "J" },
-        { "kind": "filled", "piece": "J" },
-        { "kind": "filled", "piece": "J" },
-        { "kind": "filled", "piece": "J" },
-        { "kind": "filled", "piece": "J" },
-        { "kind": "filled", "piece": "J" },
-        { "kind": "filled", "piece": "J" }
-      ],
-      [
-        { "kind": "filled", "piece": "J" },
-        { "kind": "filled", "piece": "J" },
-        null,
-        null,
-        null,
-        null,
-        null,
-        { "kind": "filled", "piece": "J" },
-        { "kind": "filled", "piece": "J" },
-        { "kind": "filled", "piece": "J" }
-      ],
-      [
-        { "kind": "filled", "piece": "J" },
-        { "kind": "filled", "piece": "J" },
-        null,
-        { "kind": "filled", "piece": "O" },
-        null,
-        { "kind": "filled", "piece": "O" },
-        null,
-        { "kind": "filled", "piece": "J" },
-        { "kind": "filled", "piece": "J" },
-        { "kind": "filled", "piece": "J" }
-      ]
-    ],
-    "active": "T",
-    "hold": null,
-    "queue": ["S", "Z", "L", "J", "O"],
-    "b2bActive": true,
-    "combo": 0,
-    "garbageHoleColumn": null,
-    "goal": "Drop the T into the 3-wide slot to clear a T-spin Double and preserve B2B.",
-    "acceptedSolutions": [
-      {
-        "id": "sol-1",
-        "label": "TSD into the slot",
-        "placements": [{ "piece": "T", "x": 3, "y": 3, "rotation": "0" }],
-        "explanation": "The T fills the 3-wide gap and the side overhangs make the last movement a rotation, scoring a T-spin Double that preserves back-to-back."
-      }
-    ],
-    "badTemptations": [
-      {
-        "label": "Skim the Z",
-        "explanation": "Skimming breaks B2B for low value and leaves the TSD slot unfilled, wasting the setup."
-      }
-    ]
-  },
-  {
-    "id": "stair-rebalance-001",
-    "title": "O floor placement",
+    "id": "floor-fill-001",
+    "title": "O on the floor",
     "category": "Stack basics",
     "tags": ["placement", "floor"],
     "ruleset": "tetrio-default",
@@ -91,13 +12,118 @@
     "b2bActive": false,
     "combo": 0,
     "garbageHoleColumn": null,
-    "goal": "Hard drop the O piece on the open floor at columns 4 and 5.",
+    "goal": "Hard drop the O piece flat onto the open floor.",
     "acceptedSolutions": [
       {
         "id": "sol-1",
         "label": "O on the floor",
         "placements": [{ "piece": "O", "x": 4, "y": 0, "rotation": "0" }],
-        "explanation": "The empty board gives the O piece a direct floor lock at engine origin x=4, y=0."
+        "explanation": "Empty board; O locks at engine origin x=4, y=0 (its 2x2 footprint covers columns 4-5 of rows 0-1)."
+      }
+    ]
+  },
+  {
+    "id": "flat-bottom-001",
+    "title": "I flat on the bottom",
+    "category": "Stack basics",
+    "tags": ["placement", "i-piece"],
+    "ruleset": "tetrio-default",
+    "board": [],
+    "active": "I",
+    "hold": null,
+    "queue": [],
+    "b2bActive": false,
+    "combo": 0,
+    "garbageHoleColumn": null,
+    "goal": "Place the I piece flat along the bottom of the field.",
+    "acceptedSolutions": [
+      {
+        "id": "sol-1",
+        "label": "I flat on the bottom",
+        "placements": [{ "piece": "I", "x": 3, "y": -1, "rotation": "0" }],
+        "explanation": "At x=3 y=-1 r=0 the I occupies (3,0),(4,0),(5,0),(6,0) — a flat 4-wide row resting on the floor. The SRS local grid floats the horizontal I one row above its origin, so the grounded origin is y=-1."
+      }
+    ]
+  },
+  {
+    "id": "left-corner-001",
+    "title": "L into the left wall",
+    "category": "Stack basics",
+    "tags": ["placement", "wall-kick"],
+    "ruleset": "tetrio-default",
+    "board": [],
+    "active": "L",
+    "hold": null,
+    "queue": [],
+    "b2bActive": false,
+    "combo": 0,
+    "garbageHoleColumn": null,
+    "goal": "Tuck the L piece against the left wall.",
+    "acceptedSolutions": [
+      {
+        "id": "sol-1",
+        "label": "L in the left corner",
+        "placements": [{ "piece": "L", "x": 0, "y": -1, "rotation": "0" }],
+        "explanation": "At x=0 y=-1 r=0 the L occupies (0,0),(1,0),(2,0),(2,1): flat bottom of three cells resting on the floor with the toe in column 2 row 1, flush against the left wall. The SRS local grid floats the L one row above its origin, so the grounded origin is y=-1."
+      }
+    ]
+  },
+  {
+    "id": "right-tuck-001",
+    "title": "J into the right wall",
+    "category": "Stack basics",
+    "tags": ["placement", "wall-kick"],
+    "ruleset": "tetrio-default",
+    "board": [],
+    "active": "J",
+    "hold": null,
+    "queue": [],
+    "b2bActive": false,
+    "combo": 0,
+    "garbageHoleColumn": null,
+    "goal": "Tuck the J piece against the right wall.",
+    "acceptedSolutions": [
+      {
+        "id": "sol-1",
+        "label": "J in the right corner",
+        "placements": [{ "piece": "J", "x": 7, "y": -1, "rotation": "0" }],
+        "explanation": "At x=7 y=-1 r=0 the J occupies (7,0),(8,0),(9,0),(7,1): flat bottom of three cells resting on the floor with the toe in column 7 row 1, flush against the right wall. The SRS local grid floats the J one row above its origin, so the grounded origin is y=-1."
+      }
+    ]
+  },
+  {
+    "id": "t-over-i-001",
+    "title": "T on top of a flat I",
+    "category": "Stack basics",
+    "tags": ["placement", "overhang"],
+    "ruleset": "tetrio-default",
+    "board": [
+      [
+        { "kind": "filled", "piece": "I" },
+        { "kind": "filled", "piece": "I" },
+        { "kind": "filled", "piece": "I" },
+        { "kind": "filled", "piece": "I" },
+        { "kind": "filled", "piece": "I" },
+        { "kind": "filled", "piece": "I" },
+        { "kind": "filled", "piece": "I" },
+        { "kind": "filled", "piece": "I" },
+        { "kind": "filled", "piece": "I" },
+        { "kind": "filled", "piece": "I" }
+      ]
+    ],
+    "active": "T",
+    "hold": null,
+    "queue": [],
+    "b2bActive": false,
+    "combo": 0,
+    "garbageHoleColumn": null,
+    "goal": "Drop the T centered on top of a flat I floor.",
+    "acceptedSolutions": [
+      {
+        "id": "sol-1",
+        "label": "T centered above the I",
+        "placements": [{ "piece": "T", "x": 3, "y": 0, "rotation": "0" }],
+        "explanation": "At x=3 y=0 r=0 the T occupies (3,1),(4,1),(5,1),(4,2): the flat bottom rests on the I floor, the nub points up from column 4 of row 2."
       }
     ]
   }
