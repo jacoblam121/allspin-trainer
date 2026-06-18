@@ -105,4 +105,52 @@ describe("loadDrillPack", () => {
     const d = cloneDrill({ goal: 42 });
     expect(() => loadDrillPack([d])).toThrow(/goal: expected string/);
   });
+
+  it("accepts garbageHoleColumn as null, omitted, or an integer 0..9", () => {
+    expect(() =>
+      loadDrillPack([cloneDrill({ garbageHoleColumn: null })]),
+    ).not.toThrow();
+    const omitted = { ...validDrill } as Partial<Record<string, unknown>>;
+    delete omitted.garbageHoleColumn;
+    expect(() => loadDrillPack([omitted])).not.toThrow();
+    for (const c of [0, 5, 9]) {
+      expect(() =>
+        loadDrillPack([cloneDrill({ garbageHoleColumn: c })]),
+      ).not.toThrow();
+    }
+  });
+
+  it("rejects a non-integer garbageHoleColumn", () => {
+    const d = cloneDrill({ garbageHoleColumn: 4.5 });
+    expect(() => loadDrillPack([d])).toThrow(/expected integer, got 4.5/);
+  });
+
+  it("rejects an out-of-range garbageHoleColumn", () => {
+    expect(() =>
+      loadDrillPack([cloneDrill({ garbageHoleColumn: 10 })]),
+    ).toThrow(/expected integer in 0\.\.9, got 10/);
+    expect(() =>
+      loadDrillPack([cloneDrill({ garbageHoleColumn: -1 })]),
+    ).toThrow(/expected integer in 0\.\.9, got -1/);
+  });
+
+  it("accepts combo as omitted or a non-negative integer", () => {
+    expect(() => loadDrillPack([cloneDrill({ combo: 0 })])).not.toThrow();
+    expect(() => loadDrillPack([cloneDrill({ combo: 7 })])).not.toThrow();
+    const omitted = { ...validDrill } as Partial<Record<string, unknown>>;
+    delete omitted.combo;
+    expect(() => loadDrillPack([omitted])).not.toThrow();
+  });
+
+  it("rejects a non-integer combo", () => {
+    const d = cloneDrill({ combo: 1.5 });
+    expect(() => loadDrillPack([d])).toThrow(/expected integer, got 1.5/);
+  });
+
+  it("rejects a negative combo", () => {
+    const d = cloneDrill({ combo: -1 });
+    expect(() => loadDrillPack([d])).toThrow(
+      /expected non-negative integer, got -1/,
+    );
+  });
 });

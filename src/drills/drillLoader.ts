@@ -148,10 +148,7 @@ function parseDrill(value: unknown, index: number): Drill {
     hold,
     queue,
     b2bActive: d.b2bActive === undefined ? undefined : Boolean(d.b2bActive),
-    combo:
-      d.combo === undefined
-        ? undefined
-        : requireNumber(d.combo, `${path}.combo`),
+    combo: parseCombo(d.combo, `${path}.combo`),
     garbageHoleColumn: parseGarbageHoleColumn(
       d.garbageHoleColumn,
       `${path}.garbageHoleColumn`,
@@ -171,6 +168,14 @@ function requireNumber(value: unknown, path: string): number {
     fail(path, `expected number, got ${typeof value}`);
   }
   return value;
+}
+
+function requireInteger(value: unknown, path: string): number {
+  const n = requireNumber(value, path);
+  if (!Number.isInteger(n)) {
+    fail(path, `expected integer, got ${n}`);
+  }
+  return n;
 }
 
 function requireRotation(
@@ -193,7 +198,22 @@ function parseGarbageHoleColumn(
   if (value === null) {
     return null;
   }
-  return requireNumber(value, path);
+  const n = requireInteger(value, path);
+  if (n < 0 || n > 9) {
+    fail(path, `expected integer in 0..9, got ${n}`);
+  }
+  return n;
+}
+
+function parseCombo(value: unknown, path: string): number | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  const n = requireInteger(value, path);
+  if (n < 0) {
+    fail(path, `expected non-negative integer, got ${n}`);
+  }
+  return n;
 }
 
 export function loadDrillPack(input: unknown): DrillPack {
