@@ -17,6 +17,7 @@
 import {
   type EngineSnapshot,
   type EngineState,
+  type LockedPlacement,
   hardDropAndLock as engineHardDropAndLock,
   hardDrop as engineHardDrop,
   hold as engineHold,
@@ -33,14 +34,23 @@ import {
 import { snapshotChanged } from "./snapshotChanged.ts";
 import type { InputController, Intent } from "../input/inputController.ts";
 import type { Handling } from "../input/handling.ts";
+import type { AcceptedSolution } from "../drills/drillTypes.ts";
+import {
+  matchAcceptedSolution,
+  type SolutionMatchResult,
+} from "../drills/solutionMatcher.ts";
 
 export type Phase = "playing" | "topOutUndoable" | "topOutResetOnly";
 
+export type LoopMatchResult = SolutionMatchResult | { status: "incomplete" };
+
 export type GameLoopOptions = {
   getEngine: () => EngineState;
+  acceptedSolutions: AcceptedSolution[];
   controller: InputController;
   onSnapshot: (snapshot: EngineSnapshot) => void;
   onPhase: (phase: Phase) => void;
+  onMatchResult: (result: LoopMatchResult) => void;
   onToggleSolution: () => void;
   onResetView: () => void;
   getHandling: () => Handling;
@@ -80,9 +90,12 @@ function defaultScheduler(): GameLoopScheduler {
 
 export class GameLoop {
   private engine: EngineState;
+  private acceptedSolutions: AcceptedSolution[];
+  private placementHistory: LockedPlacement[] = [];
   private readonly controller: InputController;
   private readonly onSnapshot: (snapshot: EngineSnapshot) => void;
   private readonly onPhase: (phase: Phase) => void;
+  private readonly onMatchResult: (result: LoopMatchResult) => void;
   private readonly onToggleSolution: () => void;
   private readonly onResetView: () => void;
   private readonly getHandling: () => Handling;
@@ -98,9 +111,11 @@ export class GameLoop {
 
   constructor(opts: GameLoopOptions) {
     this.engine = opts.getEngine();
+    this.acceptedSolutions = opts.acceptedSolutions;
     this.controller = opts.controller;
     this.onSnapshot = opts.onSnapshot;
     this.onPhase = opts.onPhase;
+    this.onMatchResult = opts.onMatchResult;
     this.onToggleSolution = opts.onToggleSolution;
     this.onResetView = opts.onResetView;
     this.getHandling = opts.getHandling;
@@ -150,6 +165,8 @@ export class GameLoop {
   // reset the phase, hide the solution.
   reset(): void {
     engineReset(this.engine);
+    this.placementHistory = [];
+    this.emitMatchResult();
     this.controller.reset();
     this.resetGravity();
     this.setPhase("playing");
@@ -164,6 +181,11 @@ export class GameLoop {
   undo(): void {
     if (this.currentPhase === "topOutResetOnly") return;
     engineUndo(this.engine);
+    this.placementHistory = this.placementHistory.slice(
+      0,
+      this.engine.history.length,
+    );
+    this.emitMatchResult();
     this.resetGravity();
     this.setPhase("playing");
     this.maybePublish();
@@ -171,11 +193,14 @@ export class GameLoop {
 
   // Swap engine on drill change. Resets phase to "playing" and publishes
   // unconditionally (a drill change is a discrete event, not a tick).
-  setEngine(state: EngineState): void {
+  setEngine(state: EngineState, acceptedSolutions: AcceptedSolution[]): void {
     this.engine = state;
+    this.acceptedSolutions = acceptedSolutions;
+    this.placementHistory = [];
     this.controller.reset();
     this.resetGravity();
     this.setPhase("playing");
+    this.emitMatchResult();
     this.publishUnconditional();
   }
 
@@ -224,6 +249,10 @@ export class GameLoop {
       case "hardDrop": {
         const result = engineHardDropAndLock(this.engine);
         if (result.ok) {
+          if (result.lockedPlacement) {
+            this.placementHistory.push(result.lockedPlacement);
+            this.emitMatchResult();
+          }
           this.resetGravity();
         }
         if (result.ok || result.reason.startsWith("lock out")) {
@@ -330,6 +359,23 @@ export class GameLoop {
         return;
       }
     }
+  }
+
+  private emitMatchResult(): void {
+    const result = matchAcceptedSolution(
+      this.placementHistory,
+      this.acceptedSolutions,
+    );
+    if (
+      result.status === "pending" &&
+      this.engine.active === null &&
+      this.engine.queue.length === 0 &&
+      this.engine.status === "active"
+    ) {
+      this.onMatchResult({ status: "incomplete" });
+      return;
+    }
+    this.onMatchResult(result);
   }
 
   // In a top-out phase, only reset / toggleSolution are honored. undo is

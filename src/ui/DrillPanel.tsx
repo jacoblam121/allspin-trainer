@@ -1,5 +1,19 @@
 import type { Drill } from "../drills/drillTypes.ts";
-import type { Phase } from "../loop/gameLoop.ts";
+import type { LoopMatchResult, Phase } from "../loop/gameLoop.ts";
+
+function matchText(matchResult: LoopMatchResult | null): string {
+  switch (matchResult?.status) {
+    case "success":
+      return `Solved: ${matchResult.solution.label}`;
+    case "mismatch":
+      return "Mismatch";
+    case "incomplete":
+      return "Incomplete";
+    case "pending":
+    default:
+      return "Pending";
+  }
+}
 
 export function DrillPanel({
   drills,
@@ -11,6 +25,7 @@ export function DrillPanel({
   onReset,
   onUndo,
   phase,
+  matchResult,
 }: {
   drills: Drill[];
   drill: Drill;
@@ -21,6 +36,7 @@ export function DrillPanel({
   onReset: () => void;
   onUndo: () => void;
   phase: Phase;
+  matchResult: LoopMatchResult | null;
 }) {
   const b2b = drill.b2bActive === true;
   const combo = drill.combo ?? 0;
@@ -105,6 +121,13 @@ export function DrillPanel({
         <p className="goal__text">{drill.goal}</p>
       </div>
 
+      <div
+        className={`match-feedback match-feedback--${matchResult?.status ?? "pending"}`}
+      >
+        <h3 className="match-feedback__heading">Route match</h3>
+        <p className="match-feedback__text">{matchText(matchResult)}</p>
+      </div>
+
       {drill.source ? (
         <p className="source">
           Source:{" "}
@@ -121,6 +144,14 @@ export function DrillPanel({
             {drill.acceptedSolutions.map((sol) => (
               <div className="solution__entry" key={sol.id}>
                 <p className="solution__label">{sol.label}</p>
+                <ol className="solution__placements">
+                  {sol.placements.map((placement, i) => (
+                    <li className="solution__placement" key={i}>
+                      {placement.piece} x={placement.x} y={placement.y} r=
+                      {placement.rotation}
+                    </li>
+                  ))}
+                </ol>
                 <p className="solution__text">{sol.explanation}</p>
               </div>
             ))}

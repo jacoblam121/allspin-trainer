@@ -154,6 +154,7 @@ export function App() {
           onReset={handleReset}
           onUndo={handleUndo}
           phase={trainer.phase}
+          matchResult={trainer.matchResult}
         />
         <SettingsPanel
           settings={settings}

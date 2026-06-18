@@ -23,6 +23,13 @@ export type ActivePiece = {
   y: number;
 };
 
+export type LockedPlacement = {
+  piece: PieceId;
+  x: number;
+  y: number;
+  rotation: RotationState;
+};
+
 export type EngineStatus = "active" | "blocked";
 
 export type EngineSnapshot = {
@@ -52,7 +59,7 @@ export type EngineState = {
 };
 
 export type EngineCommandResult =
-  | { ok: true; snapshot: EngineSnapshot }
+  | { ok: true; snapshot: EngineSnapshot; lockedPlacement?: LockedPlacement }
   | { ok: false; reason: string; snapshot: EngineSnapshot };
 
 export type EngineInitResult =
@@ -106,8 +113,14 @@ export function snapshot(state: EngineState): EngineSnapshot {
   };
 }
 
-function ok(state: EngineState): EngineCommandResult {
-  return { ok: true, snapshot: snapshot(state) };
+function ok(
+  state: EngineState,
+  lockedPlacement?: LockedPlacement,
+): EngineCommandResult {
+  const snap = snapshot(state);
+  return lockedPlacement === undefined
+    ? { ok: true, snapshot: snap }
+    : { ok: true, snapshot: snap, lockedPlacement };
 }
 
 function fail(state: EngineState, reason: string): EngineCommandResult {
@@ -338,6 +351,12 @@ function lockWithHistory(
       return fail(state, "lock out: piece is above the field");
     }
   }
+  const lockedPlacement: LockedPlacement = {
+    piece: active.piece,
+    x: active.x,
+    y: active.y,
+    rotation: active.rotation,
+  };
 
   // 1. Push pre-lock snapshot for undo.
   state.history.push(historySnapshot);
@@ -361,7 +380,7 @@ function lockWithHistory(
   }
   // If the queue is empty, active stays null and status stays "active" — the
   // player has run out of pieces, which is not a top-out per plan §8.
-  return ok(state);
+  return ok(state, lockedPlacement);
 }
 
 export function lock(state: EngineState): EngineCommandResult {

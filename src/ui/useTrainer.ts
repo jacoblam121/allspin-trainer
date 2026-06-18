@@ -21,7 +21,11 @@ import {
 import { InputController } from "../input/inputController.ts";
 import type { Settings } from "../input/settings.ts";
 import { matchAction } from "../input/keybinds.ts";
-import { GameLoop, type Phase } from "../loop/gameLoop.ts";
+import {
+  GameLoop,
+  type LoopMatchResult,
+  type Phase,
+} from "../loop/gameLoop.ts";
 import type { Drill } from "../drills/drillTypes.ts";
 
 export type UseTrainerCallbacks = {
@@ -34,6 +38,7 @@ export type UseTrainerCallbacks = {
 export type UseTrainerResult = {
   snapshot: EngineSnapshot | null;
   phase: Phase;
+  matchResult: LoopMatchResult | null;
   error: string | null;
   reset: () => void;
   undo: () => void;
@@ -67,6 +72,9 @@ export function useTrainer(
     initial.state ? engineSnapshot(initial.state) : null,
   );
   const [phase, setPhase] = useState<Phase>("playing");
+  const [matchResult, setMatchResult] = useState<LoopMatchResult | null>(() =>
+    initial.state ? { status: "pending" } : null,
+  );
   const settingsRef = useRef(settings);
   useLayoutEffect(() => {
     settingsRef.current = settings;
@@ -80,6 +88,7 @@ export function useTrainer(
     setError(next.error);
     setSnapshot(next.state ? engineSnapshot(next.state) : null);
     setPhase("playing");
+    setMatchResult(next.state ? { status: "pending" } : null);
   }
 
   // Snapshot + phase state, driven by the loop's onSnapshot / onPhase after
@@ -114,19 +123,26 @@ export function useTrainer(
       controllerRef.current?.reset();
       loopRef.current = new GameLoop({
         getEngine: () => engineState,
+        acceptedSolutions: drill.acceptedSolutions,
         controller: controllerRef.current!,
         onSnapshot: setSnapshot,
         onPhase: setPhase,
+        onMatchResult: setMatchResult,
         onToggleSolution: callbacks.onToggleSolution,
         onResetView: callbacks.onResetView,
         getHandling: () => settingsRef.current.handling,
       });
       loopRef.current.start();
     } else {
-      loopRef.current.setEngine(engineState);
+      loopRef.current.setEngine(engineState, drill.acceptedSolutions);
       loopRef.current.start();
     }
-  }, [engineState, callbacks.onToggleSolution, callbacks.onResetView]);
+  }, [
+    engineState,
+    drill.acceptedSolutions,
+    callbacks.onToggleSolution,
+    callbacks.onResetView,
+  ]);
 
   // Stop the current loop on unmount. The engine-state effect owns starting
   // and replacing loops because valid drills can appear after invalid ones.
@@ -209,5 +225,5 @@ export function useTrainer(
     loopRef.current?.undo();
   }, []);
 
-  return { snapshot, phase, error, reset, undo };
+  return { snapshot, phase, matchResult, error, reset, undo };
 }

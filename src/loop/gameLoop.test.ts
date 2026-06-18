@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { GameLoop, type Phase } from "./gameLoop.ts";
+import { GameLoop, type LoopMatchResult, type Phase } from "./gameLoop.ts";
 import { InputController, type Intent } from "../input/inputController.ts";
 import {
   DEFAULT_HANDLING,
@@ -61,6 +61,7 @@ function spawnEngine(
   loop: GameLoop;
   publishesList: import("../engine/gameState.ts").EngineSnapshot[];
   phaseList: Phase[];
+  matchList: LoopMatchResult[];
   counters: { toggle: number; resetView: number };
 } {
   const result = createEngineFromDrill(makeDrill(overrides));
@@ -70,12 +71,15 @@ function spawnEngine(
   const controller = new InputController(settings);
   const publishesList: import("../engine/gameState.ts").EngineSnapshot[] = [];
   const phaseList: Phase[] = [];
+  const matchList: LoopMatchResult[] = [];
   const counters = { toggle: 0, resetView: 0 };
   const loop = new GameLoop({
     getEngine: () => state,
+    acceptedSolutions: overrides.acceptedSolutions ?? [],
     controller,
     onSnapshot: (s) => publishesList.push(s),
     onPhase: (p) => phaseList.push(p),
+    onMatchResult: (result) => matchList.push(result),
     onToggleSolution: () => {
       counters.toggle++;
     },
@@ -90,6 +94,7 @@ function spawnEngine(
     loop,
     publishesList,
     phaseList,
+    matchList,
     counters,
   };
 }
@@ -139,6 +144,28 @@ describe("GameLoop: hard-drop intent (hardDrop + lock)", () => {
     expect(last.active?.piece).toBe("T");
     expect(last.queue).toEqual([]);
   });
+
+  it("records a locked placement and emits success for a matching route", () => {
+    const h = spawnEngine({
+      active: "O",
+      queue: ["T"],
+      acceptedSolutions: [
+        {
+          id: "o-floor",
+          label: "O floor",
+          placements: [{ piece: "O", x: 4, y: 0, rotation: "0" }],
+          explanation: "test",
+        },
+      ],
+    });
+
+    apply(h, { code: "Space" });
+
+    expect(h.matchList.at(-1)).toMatchObject({
+      status: "success",
+      solution: { id: "o-floor" },
+    });
+  });
 });
 
 describe("GameLoop: softDropToFloor intent (no lock)", () => {
@@ -181,9 +208,11 @@ describe("GameLoop: lock-out -> topOutResetOnly", () => {
     const phaseList: Phase[] = [];
     const loop = new GameLoop({
       getEngine: () => state,
+      acceptedSolutions: [],
       controller,
       onSnapshot: (s) => publishesList.push(s),
       onPhase: (p) => phaseList.push(p),
+      onMatchResult: () => {},
       onToggleSolution: () => {},
       onResetView: () => {},
       getHandling: () => DEFAULT_HANDLING,
@@ -244,9 +273,11 @@ describe("GameLoop: post-lock spawn collision -> topOutUndoable", () => {
     const phaseList: Phase[] = [];
     const loop = new GameLoop({
       getEngine: () => state,
+      acceptedSolutions: [],
       controller,
       onSnapshot: (s) => publishesList.push(s),
       onPhase: (p) => phaseList.push(p),
+      onMatchResult: () => {},
       onToggleSolution: () => {},
       onResetView: () => {},
       getHandling: () => DEFAULT_HANDLING,
@@ -282,9 +313,11 @@ describe("GameLoop: post-hold spawn collision -> topOutResetOnly", () => {
     const phaseList: Phase[] = [];
     const loop = new GameLoop({
       getEngine: () => state,
+      acceptedSolutions: [],
       controller,
       onSnapshot: () => {},
       onPhase: (p) => phaseList.push(p),
+      onMatchResult: () => {},
       onToggleSolution: () => {},
       onResetView: () => {},
       getHandling: () => DEFAULT_HANDLING,
@@ -314,9 +347,31 @@ describe("GameLoop: setEngine (drill change)", () => {
     // Unconditional publish: even if the new snapshot equals the last
     // published one, setEngine should publish again.
     const beforeCount = h.publishesList.length;
-    h.loop.setEngine(h.state);
+    h.loop.setEngine(h.state, []);
     expect(h.publishesList.length).toBe(beforeCount + 1);
     expect(h.loop.getPhase()).toBe("playing");
+  });
+
+  it("clears stale matcher history", () => {
+    const acceptedSolutions: Drill["acceptedSolutions"] = [
+      {
+        id: "o-floor",
+        label: "O floor",
+        placements: [{ piece: "O", x: 4, y: 0, rotation: "0" }],
+        explanation: "test",
+      },
+    ];
+    const h = spawnEngine({ active: "O", queue: [], acceptedSolutions });
+    apply(h, { code: "Space" });
+    expect(h.matchList.at(-1)?.status).toBe("success");
+    const next = createEngineFromDrill(
+      makeDrill({ active: "O", queue: [], acceptedSolutions }),
+    );
+    if (!next.ok) throw new Error(next.reason);
+
+    h.loop.setEngine(next.state, acceptedSolutions);
+
+    expect(h.matchList.at(-1)?.status).toBe("pending");
   });
 });
 
@@ -418,6 +473,52 @@ describe("GameLoop: Reset / Undo buttons converge with keybinds", () => {
     expect(h.state.history.length).toBe(0);
   });
 
+  it("undo truncates matcher history to engine history length", () => {
+    const h = spawnEngine({
+      active: "O",
+      queue: ["T"],
+      acceptedSolutions: [
+        {
+          id: "two-step",
+          label: "Two step",
+          placements: [
+            { piece: "O", x: 4, y: 0, rotation: "0" },
+            { piece: "T", x: 3, y: 0, rotation: "0" },
+          ],
+          explanation: "test",
+        },
+      ],
+    });
+
+    apply(h, { code: "Space" });
+    expect(h.matchList.at(-1)?.status).toBe("pending");
+    apply(h, { code: "Backspace" });
+
+    expect(h.state.history.length).toBe(0);
+    expect(h.matchList.at(-1)?.status).toBe("pending");
+  });
+
+  it("reset clears matcher history", () => {
+    const h = spawnEngine({
+      active: "O",
+      queue: [],
+      acceptedSolutions: [
+        {
+          id: "o-floor",
+          label: "O floor",
+          placements: [{ piece: "O", x: 4, y: 0, rotation: "0" }],
+          explanation: "test",
+        },
+      ],
+    });
+
+    apply(h, { code: "Space" });
+    expect(h.matchList.at(-1)?.status).toBe("success");
+    h.loop.reset();
+
+    expect(h.matchList.at(-1)?.status).toBe("pending");
+  });
+
   it("each placement needs only one undo after placing again", () => {
     const h = spawnEngine({ active: "O", queue: ["T", "I"] }, {});
     const initial = engineSnapshot(h.state);
@@ -463,9 +564,11 @@ describe("GameLoop: Reset / Undo buttons converge with keybinds", () => {
     const controller = new InputController(makeSettings());
     const loop = new GameLoop({
       getEngine: () => state,
+      acceptedSolutions: [],
       controller,
       onSnapshot: () => {},
       onPhase: () => {},
+      onMatchResult: () => {},
       onToggleSolution: () => {},
       onResetView: () => {},
       getHandling: () => DEFAULT_HANDLING,
@@ -497,6 +600,31 @@ describe("GameLoop: exhausted queue guard", () => {
     expect(h.state.active).toBeNull();
     expect(h.state.history.length).toBe(1);
     expect(h.publishesList.length).toBe(pubCountAfterFirst);
+  });
+
+  it("maps pending with no active piece and empty queue to incomplete", () => {
+    const h = spawnEngine({
+      active: "O",
+      queue: [],
+      acceptedSolutions: [
+        {
+          id: "two-step",
+          label: "Two step",
+          placements: [
+            { piece: "O", x: 4, y: 0, rotation: "0" },
+            { piece: "T", x: 3, y: 0, rotation: "0" },
+          ],
+          explanation: "test",
+        },
+      ],
+    });
+
+    apply(h, { code: "Space" });
+
+    expect(h.state.active).toBeNull();
+    expect(h.state.queue).toEqual([]);
+    expect(h.state.status).toBe("active");
+    expect(h.matchList.at(-1)?.status).toBe("incomplete");
   });
 });
 
@@ -644,7 +772,7 @@ describe("GameLoop: gravity", () => {
     );
     const setEngineY = setEngineHarness.state.active!.y;
     setEngineHarness.loop.tickOnce(500);
-    setEngineHarness.loop.setEngine(setEngineHarness.state);
+    setEngineHarness.loop.setEngine(setEngineHarness.state, []);
     setEngineHarness.loop.tickOnce(500);
     expect(setEngineHarness.state.active?.y).toBe(setEngineY);
   });
@@ -676,9 +804,11 @@ describe("GameLoop: gravity", () => {
     });
     const loop = new GameLoop({
       getEngine: () => state,
+      acceptedSolutions: [],
       controller,
       onSnapshot: () => {},
       onPhase: () => {},
+      onMatchResult: () => {},
       onToggleSolution: () => {},
       onResetView: () => {},
       getHandling: () => handling,
@@ -715,9 +845,11 @@ describe("GameLoop: play intents ignored during top-out", () => {
     const controller = new InputController(makeSettings());
     const loop = new GameLoop({
       getEngine: () => state,
+      acceptedSolutions: [],
       controller,
       onSnapshot: () => {},
       onPhase: () => {},
+      onMatchResult: () => {},
       onToggleSolution: () => {},
       onResetView: () => {},
       getHandling: () => DEFAULT_HANDLING,

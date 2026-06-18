@@ -175,6 +175,13 @@ describe("engine movement", () => {
     expect(state.active!.x).toBe(startX + 1);
   });
 
+  it("successful non-lock commands do not include lockedPlacement", () => {
+    const state = spawnEngine("I");
+    const result = moveLeft(state);
+    expect(result.ok).toBe(true);
+    expect(result).not.toHaveProperty("lockedPlacement");
+  });
+
   it("moveLeft fails at the left wall without mutating state", () => {
     const state = spawnEngine("I"); // I at x=3 -> cells x=3..6
     // Move left until blocked.
@@ -709,6 +716,38 @@ describe("engine undo (Sprint 2B)", () => {
     expect(state.queue).toEqual(before.queue);
     expect(state.hold).toBe(before.hold);
     expect(state.field).toEqual(before.field);
+    expect(state.history).toHaveLength(0);
+  });
+
+  it("hardDropAndLock returns the grounded locked placement", () => {
+    const drill = makeDrill({ active: "O", hold: null, queue: [] });
+    const result = createEngineFromDrill(drill);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    const placed = hardDropAndLock(result.state);
+    expect(placed.ok).toBe(true);
+    if (!placed.ok) return;
+    expect(placed.lockedPlacement).toEqual({
+      piece: "O",
+      x: 4,
+      y: 0,
+      rotation: "0",
+    });
+  });
+
+  it("hardDropAndLock failed lock-out returns no locked placement", () => {
+    const state = spawnEngine("I");
+    state.active!.y = 37;
+    rotateCw(state);
+    state.field[36][3] = { kind: "filled", piece: "L" };
+    state.field[36][4] = { kind: "filled", piece: "L" };
+    state.field[36][5] = { kind: "filled", piece: "L" };
+    state.field[36][6] = { kind: "filled", piece: "L" };
+
+    const placed = hardDropAndLock(state);
+    expect(placed.ok).toBe(false);
+    expect(placed).not.toHaveProperty("lockedPlacement");
     expect(state.history).toHaveLength(0);
   });
 

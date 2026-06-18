@@ -80,85 +80,24 @@
   },
   {
     "id": "stair-rebalance-001",
-    "title": "Staircase rebalance",
-    "category": "Stack balance",
-    "tags": ["stack-balance", "skim", "hole-access"],
+    "title": "O floor placement",
+    "category": "Stack basics",
+    "tags": ["placement", "floor"],
     "ruleset": "tetrio-default",
-    "board": [
-      [
-        { "kind": "garbage" },
-        { "kind": "garbage" },
-        { "kind": "garbage" },
-        { "kind": "garbage" },
-        { "kind": "garbage" },
-        { "kind": "garbage" },
-        { "kind": "garbage" },
-        { "kind": "garbage" },
-        { "kind": "garbage" },
-        { "kind": "garbage" }
-      ],
-      [
-        { "kind": "garbage" },
-        { "kind": "garbage" },
-        { "kind": "garbage" },
-        { "kind": "garbage" },
-        null,
-        { "kind": "garbage" },
-        { "kind": "garbage" },
-        { "kind": "garbage" },
-        { "kind": "garbage" },
-        { "kind": "garbage" }
-      ],
-      [
-        { "kind": "filled", "piece": "L" },
-        { "kind": "filled", "piece": "L" },
-        { "kind": "filled", "piece": "L" },
-        { "kind": "filled", "piece": "L" },
-        { "kind": "filled", "piece": "L" },
-        { "kind": "filled", "piece": "L" },
-        { "kind": "filled", "piece": "L" },
-        { "kind": "filled", "piece": "L" },
-        { "kind": "filled", "piece": "L" },
-        null
-      ],
-      [
-        { "kind": "filled", "piece": "L" },
-        { "kind": "filled", "piece": "L" },
-        { "kind": "filled", "piece": "L" },
-        { "kind": "filled", "piece": "L" },
-        { "kind": "filled", "piece": "L" },
-        { "kind": "filled", "piece": "L" },
-        { "kind": "filled", "piece": "L" },
-        { "kind": "filled", "piece": "L" },
-        null,
-        null
-      ],
-      [
-        { "kind": "filled", "piece": "L" },
-        { "kind": "filled", "piece": "L" },
-        { "kind": "filled", "piece": "L" },
-        { "kind": "filled", "piece": "L" },
-        { "kind": "filled", "piece": "L" },
-        { "kind": "filled", "piece": "L" },
-        null,
-        null,
-        null,
-        null
-      ]
-    ],
-    "active": "Z",
+    "board": [],
+    "active": "O",
     "hold": null,
-    "queue": ["I", "J", "O", "S"],
+    "queue": [],
     "b2bActive": false,
     "combo": 0,
-    "garbageHoleColumn": 4,
-    "goal": "Even the staircase with the queue while keeping the garbage hole (column 4) open.",
+    "garbageHoleColumn": null,
+    "goal": "Hard drop the O piece on the open floor at columns 4 and 5.",
     "acceptedSolutions": [
       {
         "id": "sol-1",
-        "label": "Skim to flatten the high side",
-        "placements": [],
-        "explanation": "Use the Z to skim the tall side and bring the stack toward flat without covering the garbage hole. Preserve hole access for clean downstack."
+        "label": "O on the floor",
+        "placements": [{ "piece": "O", "x": 4, "y": 0, "rotation": "0" }],
+        "explanation": "The empty board gives the O piece a direct floor lock at engine origin x=4, y=0."
       }
     ]
   }

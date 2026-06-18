@@ -111,6 +111,29 @@ describe("loadDrillPack", () => {
     expect(() => loadDrillPack([d])).toThrow(/goal: expected string/);
   });
 
+  it("rejects empty acceptedSolutions", () => {
+    const d = cloneDrill({ acceptedSolutions: [] });
+    expect(() => loadDrillPack([d])).toThrow(
+      /acceptedSolutions: expected at least one solution/,
+    );
+  });
+
+  it("rejects an accepted solution with empty placements", () => {
+    const d = cloneDrill({
+      acceptedSolutions: [
+        {
+          id: "sol-empty",
+          label: "Empty",
+          placements: [],
+          explanation: "No route.",
+        },
+      ],
+    });
+    expect(() => loadDrillPack([d])).toThrow(
+      /acceptedSolutions\[0\]\.placements: expected at least one placement/,
+    );
+  });
+
   it("accepts garbageHoleColumn as null, omitted, or an integer 0..9", () => {
     expect(() =>
       loadDrillPack([cloneDrill({ garbageHoleColumn: null })]),

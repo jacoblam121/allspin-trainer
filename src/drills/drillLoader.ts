@@ -85,33 +85,39 @@ function parseDrill(value: unknown, index: number): Drill {
     parsePieceId(p, `${path}.queue[${i}]`),
   );
 
-  const acceptedSolutions = requireArray(
+  const acceptedSolutionValues = requireArray(
     d.acceptedSolutions,
     `${path}.acceptedSolutions`,
-  ).map((sol, i) => {
+  );
+  if (acceptedSolutionValues.length === 0) {
+    fail(`${path}.acceptedSolutions`, "expected at least one solution");
+  }
+  const acceptedSolutions = acceptedSolutionValues.map((sol, i) => {
     const sp = `${path}.acceptedSolutions[${i}]`;
     if (typeof sol !== "object" || sol === null) {
       fail(sp, "expected solution object");
     }
     const s = sol as Record<string, unknown>;
+    const placementValues = requireArray(s.placements, `${sp}.placements`);
+    if (placementValues.length === 0) {
+      fail(`${sp}.placements`, "expected at least one placement");
+    }
     return {
       id: requireString(s.id, `${sp}.id`),
       label: requireString(s.label, `${sp}.label`),
-      placements: requireArray(s.placements, `${sp}.placements`).map(
-        (pl, j) => {
-          const pp = `${sp}.placements[${j}]`;
-          if (typeof pl !== "object" || pl === null) {
-            fail(pp, "expected placement object");
-          }
-          const p = pl as Record<string, unknown>;
-          return {
-            piece: parsePieceId(p.piece, `${pp}.piece`),
-            x: requireNumber(p.x, `${pp}.x`),
-            y: requireNumber(p.y, `${pp}.y`),
-            rotation: requireRotation(p.rotation, `${pp}.rotation`),
-          };
-        },
-      ),
+      placements: placementValues.map((pl, j) => {
+        const pp = `${sp}.placements[${j}]`;
+        if (typeof pl !== "object" || pl === null) {
+          fail(pp, "expected placement object");
+        }
+        const p = pl as Record<string, unknown>;
+        return {
+          piece: parsePieceId(p.piece, `${pp}.piece`),
+          x: requireNumber(p.x, `${pp}.x`),
+          y: requireNumber(p.y, `${pp}.y`),
+          rotation: requireRotation(p.rotation, `${pp}.rotation`),
+        };
+      }),
       explanation: requireString(s.explanation, `${sp}.explanation`),
     };
   });
