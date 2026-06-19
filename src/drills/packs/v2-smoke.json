@@ -1,0 +1,88 @@
+{
+  "version": 2,
+  "id": "mvp2-smoke",
+  "title": "MVP 2 Smoke Pack",
+  "drills": [
+    {
+      "id": "v2-smoke-hold-route-001",
+      "title": "V2 smoke: hold and outcome mask",
+      "category": "Smoke",
+      "family": "decision",
+      "tags": ["smoke", "v2", "hold", "outcome-mask"],
+      "sourceRefs": [{ "catalogId": "allspin-secondary-b2b-filler" }],
+      "goal": "V2 data-path smoke: start with a non-null hold, place O on the floor, then place a horizontal I on top of it. The accepted outcome mask is the locked field after both placements.",
+      "variants": [
+        {
+          "id": "main",
+          "label": "Non-null hold start",
+          "board": [],
+          "active": "O",
+          "hold": "T",
+          "queue": ["I"],
+          "b2bActive": false,
+          "combo": 0,
+          "garbageHoleColumn": null
+        }
+      ],
+      "acceptedOutcomes": [
+        {
+          "id": "o-floor-i-over",
+          "label": "O floor plus I shelf",
+          "variantIds": ["main"],
+          "explanation": "Final form: O locked flat on the floor (rows 0-1, columns 4-5) with a horizontal I shelf on top (row 2, columns 3-6). All other cells are don't-care.",
+          "mask": [
+            [
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "filled", "piece": "O" },
+              { "kind": "filled", "piece": "O" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" }
+            ],
+            [
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "filled", "piece": "O" },
+              { "kind": "filled", "piece": "O" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" }
+            ],
+            [
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "filled", "piece": "I" },
+              { "kind": "filled", "piece": "I" },
+              { "kind": "filled", "piece": "I" },
+              { "kind": "filled", "piece": "I" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" }
+            ]
+          ]
+        }
+      ],
+      "solutionRoutes": [
+        {
+          "id": "route-o-then-i",
+          "label": "O then I",
+          "variantId": "main",
+          "outcomeId": "o-floor-i-over",
+          "placements": [
+            { "piece": "O", "x": 4, "y": 0, "rotation": "0" },
+            { "piece": "I", "x": 3, "y": 1, "rotation": "0" }
+          ],
+          "explanation": "Hard-drop O at engine origin x=4, y=0 (its 2x2 footprint covers columns 4-5 of rows 0-1). After lock, I spawns from the queue and hard-drops to origin x=3, y=1; SRS local grid floats the horizontal I one row above its origin, so the I cells rest at y=2 across columns 3-6."
+        }
+      ]
+    }
+  ]
+}

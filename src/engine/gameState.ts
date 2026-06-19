@@ -1,6 +1,7 @@
 import { FIELD_HEIGHT } from "./constants.ts";
 import type { PieceId, RotationState } from "./pieces.ts";
 import type { Drill } from "../drills/drillTypes.ts";
+import type { PlayableStart } from "../drills/playableStart.ts";
 import { type Coord, cellsOf } from "./tetrominoes.ts";
 import {
   type Field,
@@ -148,35 +149,48 @@ function spawnPiece(state: EngineState, piece: PieceId): boolean {
   return true;
 }
 
-export function createEngineFromDrill(drill: Drill): EngineInitResult {
-  if (drill.board.length > FIELD_HEIGHT) {
+export function createEngineFromPlayableStart(
+  start: PlayableStart,
+): EngineInitResult {
+  if (start.board.length > FIELD_HEIGHT) {
     return {
       ok: false,
-      reason: `board has ${drill.board.length} rows; engine field is ${FIELD_HEIGHT}`,
+      reason: `board has ${start.board.length} rows; engine field is ${FIELD_HEIGHT}`,
     };
   }
 
-  const field = normalizeField(drill.board);
+  const field = normalizeField(start.board);
 
   const state: EngineState = {
     field,
     active: null,
-    hold: drill.hold,
-    queue: [...drill.queue],
+    hold: start.hold,
+    queue: [...start.queue],
     canHold: true,
     status: "active",
-    drillId: drill.id,
+    drillId: start.id,
     lastClear: 0,
     initial: null as unknown as EngineSnapshot,
     history: [],
   };
 
-  if (!spawnPiece(state, drill.active)) {
+  if (!spawnPiece(state, start.active)) {
     return { ok: false, reason: "spawn collision" };
   }
 
   state.initial = snapshot(state);
   return { ok: true, state };
+}
+
+export function createEngineFromDrill(drill: Drill): EngineInitResult {
+  const start: PlayableStart = {
+    id: drill.id,
+    board: drill.board,
+    active: drill.active,
+    hold: drill.hold,
+    queue: drill.queue,
+  };
+  return createEngineFromPlayableStart(start);
 }
 
 // Reject all commands while terminal. Failed commands do not flip status

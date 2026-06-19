@@ -1,0 +1,214 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "id": "allspin-secondary-b2b-filler",
+      "title": "All-spin as secondary B2B filler",
+      "family": "all-spin",
+      "source": {
+        "title": "Sustaining Back-to-Backs with All-Spins",
+        "path": "docs/Sustaining Back-to-Backs with All-Spins – How to Tetris.pdf"
+      },
+      "tags": ["all-spin", "b2b", "filler"],
+      "priority": "seed",
+      "status": "playable",
+      "drillIds": ["v2-smoke-hold-route-001"],
+      "notes": "Smoke entry: V2 data-path only; do not author full drill until Sprint 4."
+    },
+    {
+      "id": "allspin-validity",
+      "title": "TETR.IO-valid vs not-valid all-spin example",
+      "family": "all-spin",
+      "source": {
+        "title": "Sustaining Back-to-Backs with All-Spins",
+        "path": "docs/Sustaining Back-to-Backs with All-Spins – How to Tetris.pdf"
+      },
+      "tags": ["all-spin", "validity"],
+      "priority": "high",
+      "status": "backlog",
+      "drillIds": []
+    },
+    {
+      "id": "allspin-stack-balance",
+      "title": "Stack-balance all-spin",
+      "family": "all-spin",
+      "source": {
+        "title": "Sustaining Back-to-Backs with All-Spins",
+        "path": "docs/Sustaining Back-to-Backs with All-Spins – How to Tetris.pdf"
+      },
+      "tags": ["all-spin", "stack-balance"],
+      "priority": "high",
+      "status": "backlog",
+      "drillIds": []
+    },
+    {
+      "id": "allspin-local-parity-repair",
+      "title": "Local-parity repair all-spin",
+      "family": "all-spin",
+      "source": {
+        "title": "Sustaining Back-to-Backs with All-Spins",
+        "path": "docs/Sustaining Back-to-Backs with All-Spins – How to Tetris.pdf"
+      },
+      "tags": ["all-spin", "parity"],
+      "priority": "high",
+      "status": "backlog",
+      "drillIds": []
+    },
+    {
+      "id": "allspin-clean-vs-dirty",
+      "title": "Clean vs dirty aftermath",
+      "family": "all-spin",
+      "source": {
+        "title": "Sustaining Back-to-Backs with All-Spins",
+        "path": "docs/Sustaining Back-to-Backs with All-Spins – How to Tetris.pdf"
+      },
+      "tags": ["all-spin", "aftermath"],
+      "priority": "high",
+      "status": "backlog",
+      "drillIds": []
+    },
+    {
+      "id": "scarlet",
+      "title": "Scarlet",
+      "family": "all-spin",
+      "source": {
+        "title": "Sustaining Back-to-Backs with All-Spins",
+        "path": "docs/Sustaining Back-to-Backs with All-Spins – How to Tetris.pdf"
+      },
+      "tags": ["all-spin", "scarlet"],
+      "priority": "high",
+      "status": "backlog",
+      "drillIds": []
+    },
+    {
+      "id": "coral",
+      "title": "Coral",
+      "family": "all-spin",
+      "source": {
+        "title": "Sustaining Back-to-Backs with All-Spins",
+        "path": "docs/Sustaining Back-to-Backs with All-Spins – How to Tetris.pdf"
+      },
+      "tags": ["all-spin", "coral"],
+      "priority": "high",
+      "status": "backlog",
+      "drillIds": []
+    },
+    {
+      "id": "amaranth",
+      "title": "Amaranth",
+      "family": "all-spin",
+      "source": {
+        "title": "Sustaining Back-to-Backs with All-Spins",
+        "path": "docs/Sustaining Back-to-Backs with All-Spins – How to Tetris.pdf"
+      },
+      "tags": ["all-spin", "amaranth"],
+      "priority": "high",
+      "status": "backlog",
+      "drillIds": []
+    },
+    {
+      "id": "kaidan",
+      "title": "Kaidan",
+      "family": "core-tspin",
+      "source": {
+        "title": "Core T-spin Methods",
+        "path": "docs/Core T-spin Methods – How to Tetris.pdf"
+      },
+      "tags": ["core-tspin", "kaidan"],
+      "priority": "high",
+      "status": "backlog",
+      "drillIds": []
+    },
+    {
+      "id": "parapet",
+      "title": "Parapet",
+      "family": "core-tspin",
+      "source": {
+        "title": "Core T-spin Methods",
+        "path": "docs/Core T-spin Methods – How to Tetris.pdf"
+      },
+      "tags": ["core-tspin", "parapet"],
+      "priority": "high",
+      "status": "backlog",
+      "drillIds": []
+    },
+    {
+      "id": "stmb-cave-clean",
+      "title": "STMB Cave (clean)",
+      "family": "core-tspin",
+      "source": {
+        "title": "Core T-spin Methods",
+        "path": "docs/Core T-spin Methods – How to Tetris.pdf"
+      },
+      "tags": ["core-tspin", "stmb", "cave"],
+      "priority": "high",
+      "status": "backlog",
+      "drillIds": []
+    },
+    {
+      "id": "stmb-cave-dirty",
+      "title": "STMB Cave (dirty / near-miss)",
+      "family": "core-tspin",
+      "source": {
+        "title": "Core T-spin Methods",
+        "path": "docs/Core T-spin Methods – How to Tetris.pdf"
+      },
+      "tags": ["core-tspin", "stmb", "cave"],
+      "priority": "high",
+      "status": "backlog",
+      "drillIds": []
+    },
+    {
+      "id": "sky-prop",
+      "title": "Sky Prop",
+      "family": "core-tspin",
+      "source": {
+        "title": "Core T-spin Methods",
+        "path": "docs/Core T-spin Methods – How to Tetris.pdf"
+      },
+      "tags": ["core-tspin", "sky-prop"],
+      "priority": "high",
+      "status": "backlog",
+      "drillIds": []
+    },
+    {
+      "id": "fractal",
+      "title": "Fractal",
+      "family": "core-tspin",
+      "source": {
+        "title": "Core T-spin Methods",
+        "path": "docs/Core T-spin Methods – How to Tetris.pdf"
+      },
+      "tags": ["core-tspin", "fractal"],
+      "priority": "normal",
+      "status": "backlog",
+      "drillIds": []
+    },
+    {
+      "id": "stsd",
+      "title": "STSD",
+      "family": "core-tspin",
+      "source": {
+        "title": "Core T-spin Methods",
+        "path": "docs/Core T-spin Methods – How to Tetris.pdf"
+      },
+      "tags": ["core-tspin", "stsd"],
+      "priority": "normal",
+      "status": "backlog",
+      "drillIds": []
+    },
+    {
+      "id": "six-three-hole-picture",
+      "title": "6-3 / Hole Picture",
+      "family": "stacking",
+      "source": {
+        "title": "The Hole Picture",
+        "path": "docs/The Hole Picture – Galactoid's Tetris Guides and Research.pdf"
+      },
+      "tags": ["63", "hole-picture"],
+      "priority": "later",
+      "status": "deferred",
+      "drillIds": []
+    }
+  ]
+}

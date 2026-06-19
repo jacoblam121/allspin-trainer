@@ -41,6 +41,7 @@ coverage
 # local planning docs and reference images (not tracked)
 plans
 images
+docs
 
 # agent config (local)
 AGENTS.md
