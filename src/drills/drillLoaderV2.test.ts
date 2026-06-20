@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { loadDrillPackV2, loadSourceCatalog } from "./drillLoaderV2.ts";
+import { FIELD_HEIGHT } from "../engine/constants.ts";
 import type { SourceCatalog } from "./drillTypesV2.ts";
 import sourceCatalog from "./sourceCatalog.json";
 import v2Smoke from "./packs/v2-smoke.json";
@@ -529,6 +530,56 @@ describe("loadDrillPackV2", () => {
     ).toThrow(
       /drills\[0\]\.acceptedOutcomes\[0\]\.mask: mask has no constrained cells/,
     );
+  });
+
+  it("rejects a mask taller than FIELD_HEIGHT", () => {
+    // Build a mask with FIELD_HEIGHT + 1 rows, each row containing one
+    // constrained FILL_O cell at column 0 to satisfy the constrained-cell
+    // check. The size check fires first, so the resulting error is the
+    // height one.
+    const tooMany = FIELD_HEIGHT + 1;
+    const rows: unknown[] = [];
+    for (let i = 0; i < tooMany; i++) {
+      const row: unknown[] = new Array(10).fill(ANY_CELL);
+      row[0] = FILL_O;
+      rows.push(row);
+    }
+    expect(() =>
+      loadDrillPackV2(
+        makeValidPack({
+          drills: [
+            makeValidDrill({
+              acceptedOutcomes: [makeValidOutcome({ mask: rows })],
+            }),
+          ],
+        }),
+        makeCatalog(),
+      ),
+    ).toThrow(
+      new RegExp(
+        `drills\\[0\\]\\.acceptedOutcomes\\[0\\]\\.mask: mask has ${tooMany} rows; engine field is ${FIELD_HEIGHT}`,
+      ),
+    );
+  });
+
+  it("accepts a mask with exactly FIELD_HEIGHT rows", () => {
+    const rows: unknown[] = [];
+    for (let i = 0; i < FIELD_HEIGHT; i++) {
+      const row: unknown[] = new Array(10).fill(ANY_CELL);
+      if (i === 0) row[0] = FILL_O;
+      rows.push(row);
+    }
+    const pack = loadDrillPackV2(
+      makeValidPack({
+        drills: [
+          makeValidDrill({
+            acceptedOutcomes: [makeValidOutcome({ mask: rows })],
+          }),
+        ],
+      }),
+      makeCatalog(),
+    );
+    expect(pack.drills[0].acceptedOutcomes[0].mask).toHaveLength(FIELD_HEIGHT);
   });
 
   it("accepts a mask that constrains via a null cell", () => {

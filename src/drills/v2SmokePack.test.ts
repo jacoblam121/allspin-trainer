@@ -8,6 +8,12 @@ import {
   hold,
   snapshot,
 } from "../engine/gameState.ts";
+import { GameLoop, type LoopMatchResult } from "../loop/gameLoop.ts";
+import { InputController } from "../input/inputController.ts";
+import {
+  DEFAULT_HANDLING,
+  DEFAULT_KEYBINDS,
+} from "../input/defaultSettings.ts";
 
 describe("V2 source catalog", () => {
   it("loads via loadSourceCatalog", () => {
@@ -103,6 +109,94 @@ describe("engine handles authored non-null hold from a PlayableStart", () => {
     expect(res.ok).toBe(true);
     expect(state.hold).toBe("O");
     expect(state.active?.piece).toBe("T");
+    expect(state.queue).toEqual(["I"]);
+    expect(state.canHold).toBe(false);
+  });
+});
+
+describe("V2 smoke pack plays to solved via GameLoop outcome mode", () => {
+  const catalog = loadSourceCatalog(sourceCatalog);
+  const pack = loadDrillPackV2(v2Smoke, catalog);
+  const drill = pack.drills[0];
+  const variant = drill.variants[0];
+
+  it("places the authored route (O then I) and reaches a solved outcome", () => {
+    const start = playableStartFromVariant(variant);
+    const init = createEngineFromPlayableStart(start);
+    if (!init.ok) {
+      throw new Error(`engine init failed: ${init.reason}`);
+    }
+    const state = init.state;
+    const controller = new InputController({
+      version: 1,
+      keybinds: DEFAULT_KEYBINDS,
+      handling: DEFAULT_HANDLING,
+    });
+    const matchList: LoopMatchResult[] = [];
+    const loop = new GameLoop({
+      getEngine: () => state,
+      matchMode: {
+        kind: "outcome",
+        acceptedOutcomes: drill.acceptedOutcomes,
+        variantId: variant.id,
+      },
+      controller,
+      onSnapshot: () => {},
+      onPhase: () => {},
+      onMatchResult: (r) => matchList.push(r),
+      onToggleSolution: () => {},
+      onResetView: () => {},
+      getHandling: () => DEFAULT_HANDLING,
+    });
+
+    // Initial pending.
+    loop.setEngine(state, {
+      kind: "outcome",
+      acceptedOutcomes: drill.acceptedOutcomes,
+      variantId: variant.id,
+    });
+    expect(matchList.at(-1)?.status).toBe("pending");
+
+    // O is the active piece (spawn origin (4, 20)); hardDrop places it on
+    // the floor at row 0-1, columns 4-5.
+    const oDrop = controller.press("Space", {});
+    expect(oDrop).toEqual([{ kind: "hardDrop" }]);
+    loop.dispatch(oDrop);
+    controller.release("Space", {});
+    expect(state.active?.piece).toBe("I");
+    expect(matchList.at(-1)?.status).toBe("pending");
+
+    // I spawns at (3, 19) and rests on top of the O block at row 2,
+    // columns 3-6.
+    const iDrop = controller.press("Space", {});
+    expect(iDrop).toEqual([{ kind: "hardDrop" }]);
+    loop.dispatch(iDrop);
+    controller.release("Space", {});
+    expect(matchList.at(-1)).toMatchObject({
+      status: "solved",
+      outcome: { id: "o-floor-i-over" },
+    });
+  });
+
+  it("non-null hold behavior remains correct: hold() swaps active and hold", () => {
+    const start = playableStartFromVariant(variant);
+    const init = createEngineFromPlayableStart(start);
+    if (!init.ok) {
+      throw new Error(`engine init failed: ${init.reason}`);
+    }
+    const state = init.state;
+    // Pre-lock state: active=O, hold=T, queue=[I], canHold=true.
+    expect(state.active?.piece).toBe("O");
+    expect(state.hold).toBe("T");
+    expect(state.queue).toEqual(["I"]);
+    expect(state.canHold).toBe(true);
+
+    const res = hold(state);
+    expect(res.ok).toBe(true);
+    // After hold: active=T (from hold), hold=O (just-active), queue=[I],
+    // canHold=false.
+    expect(state.active?.piece).toBe("T");
+    expect(state.hold).toBe("O");
     expect(state.queue).toEqual(["I"]);
     expect(state.canHold).toBe(false);
   });

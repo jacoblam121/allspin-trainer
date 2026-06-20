@@ -1,4 +1,4 @@
-import { BOARD_WIDTH } from "../engine/constants.ts";
+import { BOARD_WIDTH, FIELD_HEIGHT } from "../engine/constants.ts";
 import { isPieceId } from "../engine/pieces.ts";
 import type { BoardCell } from "./drillTypes.ts";
 import type {
@@ -405,6 +405,12 @@ function parseAcceptedOutcome(
   const maskRaw = requireArray(obj.mask, `${path}.mask`);
   if (maskRaw.length === 0) {
     fail(`${path}.mask`, "expected at least one mask row");
+  }
+  if (maskRaw.length > FIELD_HEIGHT) {
+    fail(
+      `${path}.mask`,
+      `mask has ${maskRaw.length} rows; engine field is ${FIELD_HEIGHT}`,
+    );
   }
   const mask = maskRaw.map((row, y) => parseMaskRow(row, y, `${path}.mask`));
   if (!maskHasConstrainedCell(mask)) {

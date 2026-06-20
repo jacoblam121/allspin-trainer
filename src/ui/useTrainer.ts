@@ -1,9 +1,14 @@
 // useTrainer (plan §11.1). Owns the engine / controller / loop lifecycle
 // for the React side. Renders engine snapshots via setState driven by the
 // loop's onSnapshot callback. Window event listeners (keydown, keyup,
-// blur) are mounted in a useEffect. On drill change, the hook recreates the
-// engine and either calls loop.setEngine or stops/clears the loop if the drill
-// is invalid. A later valid drill creates and starts a fresh loop.
+// blur) are mounted in a useEffect. On key change, the hook recreates the
+// engine and either calls loop.setEngine or stops/clears the loop if the
+// start is invalid. A later valid key creates and starts a fresh loop.
+//
+// Sprint 2: the runtime start is a `PlayableStart` plus a `matchMode` and
+// a `key` identity (drill / variant / run nonce). The engine is created
+// from `createEngineFromPlayableStart`. The loop consumes a `MatchMode`
+// directly — it never sees V2 drill metadata.
 
 import {
   useCallback,
@@ -13,20 +18,29 @@ import {
   useState,
 } from "react";
 import {
-  createEngineFromDrill,
+  createEngineFromPlayableStart,
   snapshot as engineSnapshot,
   type EngineSnapshot,
   type EngineState,
 } from "../engine/gameState.ts";
+import type { PlayableStart } from "../drills/playableStart.ts";
 import { InputController } from "../input/inputController.ts";
 import type { Settings } from "../input/settings.ts";
 import { matchAction } from "../input/keybinds.ts";
 import {
   GameLoop,
   type LoopMatchResult,
+  type MatchMode,
   type Phase,
 } from "../loop/gameLoop.ts";
-import type { Drill } from "../drills/drillTypes.ts";
+
+export type UseTrainerInput = {
+  // Identity used to reinitialize the engine + loop on change. Different
+  // drill / variant / "new variant" run nonces all bump the key.
+  key: string;
+  start: PlayableStart;
+  matchMode: MatchMode;
+};
 
 export type UseTrainerCallbacks = {
   onToggleSolution: () => void;
@@ -44,26 +58,26 @@ export type UseTrainerResult = {
   undo: () => void;
 };
 
-function initEngine(drill: Drill): {
+function initEngine(input: UseTrainerInput): {
   state: EngineState | null;
   error: string | null;
 } {
-  const init = createEngineFromDrill(drill);
+  const init = createEngineFromPlayableStart(input.start);
   return init.ok
     ? { state: init.state, error: null }
     : { state: null, error: init.reason };
 }
 
 export function useTrainer(
-  drill: Drill,
+  input: UseTrainerInput,
   settings: Settings,
   callbacks: UseTrainerCallbacks,
 ): UseTrainerResult {
-  // Engine + initial snapshot. The state lives in useState; on drill change
+  // Engine + initial snapshot. The state lives in useState; on key change
   // we recompute during render (set-during-render pattern, supported by
-  // React) so the first effect cycle of a new drill already has the right
+  // React) so the first effect cycle of a new key already has the right
   // engine.
-  const initial = initEngine(drill);
+  const initial = initEngine(input);
   const [engineState, setEngineState] = useState<EngineState | null>(
     initial.state,
   );
@@ -80,10 +94,10 @@ export function useTrainer(
     settingsRef.current = settings;
   }, [settings]);
 
-  const [prevDrillId, setPrevDrillId] = useState(drill.id);
-  if (prevDrillId !== drill.id) {
-    setPrevDrillId(drill.id);
-    const next = initEngine(drill);
+  const [prevKey, setPrevKey] = useState(input.key);
+  if (prevKey !== input.key) {
+    setPrevKey(input.key);
+    const next = initEngine(input);
     setEngineState(next.state);
     setError(next.error);
     setSnapshot(next.state ? engineSnapshot(next.state) : null);
@@ -92,7 +106,7 @@ export function useTrainer(
   }
 
   // Snapshot + phase state, driven by the loop's onSnapshot / onPhase after
-  // the synchronous drill-change initialization above.
+  // the synchronous key-change initialization above.
 
   // Controller: created once. Settings updates applied via setKeybinds /
   // setHandling in the effect below.
@@ -107,7 +121,7 @@ export function useTrainer(
 
   // Loop ref. Created lazily in an effect (refs must not be accessed during
   // render per react-hooks/refs). We also push the engine into the loop
-  // whenever the engine state changes.
+  // whenever the engine state or match mode changes.
   const loopRef = useRef<GameLoop | null>(null);
   useEffect(() => {
     if (engineState === null) {
@@ -123,7 +137,7 @@ export function useTrainer(
       controllerRef.current?.reset();
       loopRef.current = new GameLoop({
         getEngine: () => engineState,
-        acceptedSolutions: drill.acceptedSolutions,
+        matchMode: input.matchMode,
         controller: controllerRef.current!,
         onSnapshot: setSnapshot,
         onPhase: setPhase,
@@ -134,18 +148,18 @@ export function useTrainer(
       });
       loopRef.current.start();
     } else {
-      loopRef.current.setEngine(engineState, drill.acceptedSolutions);
+      loopRef.current.setEngine(engineState, input.matchMode);
       loopRef.current.start();
     }
   }, [
     engineState,
-    drill.acceptedSolutions,
+    input.matchMode,
     callbacks.onToggleSolution,
     callbacks.onResetView,
   ]);
 
   // Stop the current loop on unmount. The engine-state effect owns starting
-  // and replacing loops because valid drills can appear after invalid ones.
+  // and replacing loops because valid keys can appear after invalid ones.
   useEffect(() => {
     return () => {
       loopRef.current?.stop();
@@ -166,7 +180,7 @@ export function useTrainer(
       if (callbacks.rebindActiveRef.current) return;
       // No loop => no engine. Ignore the key so controller state cannot
       // diverge from the engine (e.g. stale held direction / SDF state
-      // bleeding into the next valid-drill loop).
+      // bleeding into the next valid-key loop).
       if (loopRef.current === null) return;
 
       const mods = {

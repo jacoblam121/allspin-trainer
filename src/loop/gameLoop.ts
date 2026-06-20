@@ -6,9 +6,16 @@
 //
 // Variable-step, rAF-driven. The loop advances input repeat timers, dispatches
 // intents, applies fall-only gravity, and publishes resulting snapshots.
-// setEngine (drill change) always publishes unconditionally. Phase is tracked per the
+// setEngine (drill / variant change) always publishes unconditionally. Phase is tracked per the
 // cause-of-top-out analysis in plan §7 and §12 — see updatePhaseAfterLock
 // and updatePhaseAfterHold.
+//
+// Match mode (Sprint 2): the loop consumes a `MatchMode` describing how
+// pass/fail feedback is computed. Strict-route mode preserves the MVP 1
+// `matchAcceptedSolution` behavior. Outcome mode evaluates `findAcceptedOutcome`
+// against the current locked field after each successful lock. V2 outcome
+// state is sticky once `solved`, and is cleared by reset / undo / setEngine
+// (those paths emit `pending` and never consult the matcher).
 //
 // Scheduler (rAF + time source) is injectable for tests; the production
 // default uses requestAnimationFrame and performance.now() (clamped dt max
@@ -35,6 +42,11 @@ import { snapshotChanged } from "./snapshotChanged.ts";
 import type { InputController, Intent } from "../input/inputController.ts";
 import type { Handling } from "../input/handling.ts";
 import type { AcceptedSolution } from "../drills/drillTypes.ts";
+import type { AcceptedOutcome } from "../drills/drillTypesV2.ts";
+import {
+  findAcceptedOutcome,
+  type OutcomeMatchResult,
+} from "../drills/outcomeMatcher.ts";
 import {
   matchAcceptedSolution,
   type SolutionMatchResult,
@@ -42,11 +54,15 @@ import {
 
 export type Phase = "playing" | "topOutUndoable" | "topOutResetOnly";
 
-export type LoopMatchResult = SolutionMatchResult | { status: "incomplete" };
+export type MatchMode =
+  | { kind: "strict-route"; acceptedSolutions: AcceptedSolution[] }
+  | { kind: "outcome"; acceptedOutcomes: AcceptedOutcome[]; variantId: string };
+
+export type LoopMatchResult = SolutionMatchResult | OutcomeMatchResult;
 
 export type GameLoopOptions = {
   getEngine: () => EngineState;
-  acceptedSolutions: AcceptedSolution[];
+  matchMode: MatchMode;
   controller: InputController;
   onSnapshot: (snapshot: EngineSnapshot) => void;
   onPhase: (phase: Phase) => void;
@@ -90,8 +106,13 @@ function defaultScheduler(): GameLoopScheduler {
 
 export class GameLoop {
   private engine: EngineState;
-  private acceptedSolutions: AcceptedSolution[];
+  private matchMode: MatchMode;
   private placementHistory: LockedPlacement[] = [];
+  // Sticky V2 outcome state. Non-null means the drill is solved for the
+  // current run; reset / undo / setEngine clear it and emit pending. Outcome
+  // evaluation only runs on the post-lock path, so solved / incomplete are
+  // not produced from reset / undo / setEngine.
+  private solvedOutcome: AcceptedOutcome | null = null;
   private readonly controller: InputController;
   private readonly onSnapshot: (snapshot: EngineSnapshot) => void;
   private readonly onPhase: (phase: Phase) => void;
@@ -111,7 +132,7 @@ export class GameLoop {
 
   constructor(opts: GameLoopOptions) {
     this.engine = opts.getEngine();
-    this.acceptedSolutions = opts.acceptedSolutions;
+    this.matchMode = opts.matchMode;
     this.controller = opts.controller;
     this.onSnapshot = opts.onSnapshot;
     this.onPhase = opts.onPhase;
@@ -162,11 +183,13 @@ export class GameLoop {
   // Engine-side reset. Called by the Reset button and the "reset" intent
   // (both go through dispatch, so the intent path and the button path are
   // indistinguishable). Always: reset the engine, clear controller state,
-  // reset the phase, hide the solution.
+  // reset the phase, hide the solution. V2 outcome state is cleared and
+  // pending is emitted (the matcher is not consulted).
   reset(): void {
     engineReset(this.engine);
     this.placementHistory = [];
-    this.emitMatchResult();
+    this.solvedOutcome = null;
+    this.emitPendingOrStrictRoute();
     this.controller.reset();
     this.resetGravity();
     this.setPhase("playing");
@@ -177,7 +200,8 @@ export class GameLoop {
   // Engine-side undo. Honored during normal play and during
   // "topOutUndoable". In "topOutResetOnly", undo is swallowed and the
   // phase / engine are untouched because the top-out-causing command pushed
-  // no recoverable history.
+  // no recoverable history. V2 outcome state is cleared and pending is
+  // emitted.
   undo(): void {
     if (this.currentPhase === "topOutResetOnly") return;
     engineUndo(this.engine);
@@ -185,22 +209,25 @@ export class GameLoop {
       0,
       this.engine.history.length,
     );
-    this.emitMatchResult();
+    this.solvedOutcome = null;
+    this.emitPendingOrStrictRoute();
     this.resetGravity();
     this.setPhase("playing");
     this.maybePublish();
   }
 
-  // Swap engine on drill change. Resets phase to "playing" and publishes
-  // unconditionally (a drill change is a discrete event, not a tick).
-  setEngine(state: EngineState, acceptedSolutions: AcceptedSolution[]): void {
+  // Swap engine on drill / variant change. Resets phase to "playing" and
+  // publishes unconditionally (a change is a discrete event, not a tick).
+  // V2 outcome state is cleared and pending is emitted.
+  setEngine(state: EngineState, matchMode: MatchMode): void {
     this.engine = state;
-    this.acceptedSolutions = acceptedSolutions;
+    this.matchMode = matchMode;
     this.placementHistory = [];
+    this.solvedOutcome = null;
     this.controller.reset();
     this.resetGravity();
     this.setPhase("playing");
-    this.emitMatchResult();
+    this.emitPendingOrStrictRoute();
     this.publishUnconditional();
   }
 
@@ -251,7 +278,7 @@ export class GameLoop {
         if (result.ok) {
           if (result.lockedPlacement) {
             this.placementHistory.push(result.lockedPlacement);
-            this.emitMatchResult();
+            this.handlePostLock();
           }
           this.resetGravity();
         }
@@ -361,10 +388,47 @@ export class GameLoop {
     }
   }
 
-  private emitMatchResult(): void {
+  // Post-lock path: evaluate match mode after a successful lock that pushed
+  // a `lockedPlacement`. Strict-route runs the placement matcher; outcome
+  // mode evaluates the board mask, with sticky `solved` and queue-exhausted
+  // `incomplete`. Both modes preserve the queue-exhausted -> incomplete
+  // shortcut.
+  private handlePostLock(): void {
+    if (this.matchMode.kind === "strict-route") {
+      this.emitStrictRouteResult();
+      return;
+    }
+    // Outcome mode.
+    if (this.solvedOutcome !== null) {
+      this.onMatchResult({
+        status: "solved",
+        outcome: this.solvedOutcome,
+      });
+      return;
+    }
+    const match = findAcceptedOutcome(
+      this.engine.field,
+      this.matchMode.acceptedOutcomes,
+      this.matchMode.variantId,
+    );
+    if (match !== null) {
+      this.solvedOutcome = match;
+      this.onMatchResult({ status: "solved", outcome: match });
+      return;
+    }
+    this.emitPendingOrIncomplete();
+  }
+
+  // Emit a strict-route match result, with the legacy queue-exhausted ->
+  // incomplete shortcut. The `incomplete` status is part of
+  // `OutcomeMatchResult` but it is a valid `LoopMatchResult` in either
+  // mode here.
+  private emitStrictRouteResult(): void {
     const result = matchAcceptedSolution(
       this.placementHistory,
-      this.acceptedSolutions,
+      this.matchMode.kind === "strict-route"
+        ? this.matchMode.acceptedSolutions
+        : [],
     );
     if (
       result.status === "pending" &&
@@ -376,6 +440,33 @@ export class GameLoop {
       return;
     }
     this.onMatchResult(result);
+  }
+
+  // Emit `pending` (outcome mode) or the strict-route result (strict-route
+  // mode). Used by reset / undo / setEngine, which never consult the V2
+  // outcome matcher directly. Strict-route still runs the placement matcher
+  // so the existing reset/undo behavior is preserved.
+  private emitPendingOrStrictRoute(): void {
+    if (this.matchMode.kind === "strict-route") {
+      this.emitStrictRouteResult();
+      return;
+    }
+    this.onMatchResult({ status: "pending" });
+  }
+
+  // Emit `pending` or `incomplete` based on whether the queue is exhausted
+  // and no piece is active. Used by the post-lock path in outcome mode when
+  // the board does not match any accepted outcome.
+  private emitPendingOrIncomplete(): void {
+    if (
+      this.engine.active === null &&
+      this.engine.queue.length === 0 &&
+      this.engine.status === "active"
+    ) {
+      this.onMatchResult({ status: "incomplete" });
+      return;
+    }
+    this.onMatchResult({ status: "pending" });
   }
 
   // In a top-out phase, only reset / toggleSolution are honored. undo is

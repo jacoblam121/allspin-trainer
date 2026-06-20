@@ -10,6 +10,7 @@ import type { Keybinds } from "../input/keybinds.ts";
 import type { Handling } from "../input/handling.ts";
 import {
   createEngineFromDrill,
+  createEngineFromPlayableStart,
   moveDown,
   rotateCw,
   snapshot as engineSnapshot,
@@ -17,6 +18,9 @@ import {
 } from "../engine/gameState.ts";
 import { BOARD_WIDTH, FIELD_HEIGHT } from "../engine/constants.ts";
 import type { BoardCell, Drill } from "../drills/drillTypes.ts";
+import type { AcceptedSolution } from "../drills/drillTypes.ts";
+import type { AcceptedOutcome, BoardMaskRow } from "../drills/drillTypesV2.ts";
+import type { PlayableStart } from "../drills/playableStart.ts";
 
 function emptyRow(): BoardCell[] {
   return new Array(BOARD_WIDTH).fill(null);
@@ -52,6 +56,13 @@ function makeSettings(
   };
 }
 
+function strictRouteMatchMode(acceptedSolutions: AcceptedSolution[] = []): {
+  kind: "strict-route";
+  acceptedSolutions: AcceptedSolution[];
+} {
+  return { kind: "strict-route", acceptedSolutions };
+}
+
 function spawnEngine(
   overrides: Partial<Drill> = {},
   settingsOverrides: Parameters<typeof makeSettings>[0] = {},
@@ -75,7 +86,7 @@ function spawnEngine(
   const counters = { toggle: 0, resetView: 0 };
   const loop = new GameLoop({
     getEngine: () => state,
-    acceptedSolutions: overrides.acceptedSolutions ?? [],
+    matchMode: strictRouteMatchMode(overrides.acceptedSolutions ?? []),
     controller,
     onSnapshot: (s) => publishesList.push(s),
     onPhase: (p) => phaseList.push(p),
@@ -208,7 +219,7 @@ describe("GameLoop: lock-out -> topOutResetOnly", () => {
     const phaseList: Phase[] = [];
     const loop = new GameLoop({
       getEngine: () => state,
-      acceptedSolutions: [],
+      matchMode: strictRouteMatchMode(),
       controller,
       onSnapshot: (s) => publishesList.push(s),
       onPhase: (p) => phaseList.push(p),
@@ -273,7 +284,7 @@ describe("GameLoop: post-lock spawn collision -> topOutUndoable", () => {
     const phaseList: Phase[] = [];
     const loop = new GameLoop({
       getEngine: () => state,
-      acceptedSolutions: [],
+      matchMode: strictRouteMatchMode(),
       controller,
       onSnapshot: (s) => publishesList.push(s),
       onPhase: (p) => phaseList.push(p),
@@ -313,7 +324,7 @@ describe("GameLoop: post-hold spawn collision -> topOutResetOnly", () => {
     const phaseList: Phase[] = [];
     const loop = new GameLoop({
       getEngine: () => state,
-      acceptedSolutions: [],
+      matchMode: strictRouteMatchMode(),
       controller,
       onSnapshot: () => {},
       onPhase: (p) => phaseList.push(p),
@@ -347,7 +358,7 @@ describe("GameLoop: setEngine (drill change)", () => {
     // Unconditional publish: even if the new snapshot equals the last
     // published one, setEngine should publish again.
     const beforeCount = h.publishesList.length;
-    h.loop.setEngine(h.state, []);
+    h.loop.setEngine(h.state, strictRouteMatchMode());
     expect(h.publishesList.length).toBe(beforeCount + 1);
     expect(h.loop.getPhase()).toBe("playing");
   });
@@ -369,7 +380,7 @@ describe("GameLoop: setEngine (drill change)", () => {
     );
     if (!next.ok) throw new Error(next.reason);
 
-    h.loop.setEngine(next.state, acceptedSolutions);
+    h.loop.setEngine(next.state, strictRouteMatchMode(acceptedSolutions));
 
     expect(h.matchList.at(-1)?.status).toBe("pending");
   });
@@ -564,7 +575,7 @@ describe("GameLoop: Reset / Undo buttons converge with keybinds", () => {
     const controller = new InputController(makeSettings());
     const loop = new GameLoop({
       getEngine: () => state,
-      acceptedSolutions: [],
+      matchMode: strictRouteMatchMode(),
       controller,
       onSnapshot: () => {},
       onPhase: () => {},
@@ -772,7 +783,10 @@ describe("GameLoop: gravity", () => {
     );
     const setEngineY = setEngineHarness.state.active!.y;
     setEngineHarness.loop.tickOnce(500);
-    setEngineHarness.loop.setEngine(setEngineHarness.state, []);
+    setEngineHarness.loop.setEngine(
+      setEngineHarness.state,
+      strictRouteMatchMode(),
+    );
     setEngineHarness.loop.tickOnce(500);
     expect(setEngineHarness.state.active?.y).toBe(setEngineY);
   });
@@ -804,7 +818,7 @@ describe("GameLoop: gravity", () => {
     });
     const loop = new GameLoop({
       getEngine: () => state,
-      acceptedSolutions: [],
+      matchMode: strictRouteMatchMode(),
       controller,
       onSnapshot: () => {},
       onPhase: () => {},
@@ -845,7 +859,7 @@ describe("GameLoop: play intents ignored during top-out", () => {
     const controller = new InputController(makeSettings());
     const loop = new GameLoop({
       getEngine: () => state,
-      acceptedSolutions: [],
+      matchMode: strictRouteMatchMode(),
       controller,
       onSnapshot: () => {},
       onPhase: () => {},
@@ -878,3 +892,371 @@ void vi;
 void FIELD_HEIGHT;
 void (null as unknown as Intent);
 void emptyRow;
+
+// --- V2 outcome mode tests (Sprint 2) ---
+
+function makePlayableStart(
+  overrides: Partial<PlayableStart> = {},
+): PlayableStart {
+  return {
+    id: "v2-variant",
+    board: [],
+    active: "O",
+    hold: null,
+    queue: [],
+    ...overrides,
+  };
+}
+
+function outcomeMatchMode(
+  acceptedOutcomes: AcceptedOutcome[],
+  variantId: string = "v2-variant",
+): {
+  kind: "outcome";
+  acceptedOutcomes: AcceptedOutcome[];
+  variantId: string;
+} {
+  return { kind: "outcome", acceptedOutcomes, variantId };
+}
+
+function anyRowWithFilledCells(
+  cells: Array<{ x: number; piece: "I" | "J" | "L" | "O" | "S" | "T" | "Z" }>,
+): BoardMaskRow {
+  const row: BoardMaskRow = new Array(BOARD_WIDTH).fill({ kind: "any" });
+  for (const c of cells) {
+    row[c.x] = { kind: "filled", piece: c.piece };
+  }
+  return row;
+}
+
+// Mask for the O piece at spawn origin: cells (4,0), (5,0), (4,1), (5,1).
+function oFloorMask(): BoardMaskRow[] {
+  return [
+    anyRowWithFilledCells([
+      { x: 4, piece: "O" },
+      { x: 5, piece: "O" },
+    ]),
+    anyRowWithFilledCells([
+      { x: 4, piece: "O" },
+      { x: 5, piece: "O" },
+    ]),
+  ];
+}
+
+// Mask for the I piece at spawn origin: cells (3,0)-(6,0).
+function iShelfMask(): BoardMaskRow[] {
+  return [
+    anyRowWithFilledCells([
+      { x: 3, piece: "I" },
+      { x: 4, piece: "I" },
+      { x: 5, piece: "I" },
+      { x: 6, piece: "I" },
+    ]),
+  ];
+}
+
+function spawnOutcomeEngine(opts: {
+  start?: PlayableStart;
+  outcomes: AcceptedOutcome[];
+  variantId?: string;
+  settings?: Parameters<typeof makeSettings>[0];
+}): LoopHarness & { acceptedOutcomes: AcceptedOutcome[] } {
+  const start = opts.start ?? makePlayableStart();
+  const result = createEngineFromPlayableStart(start);
+  if (!result.ok) throw new Error(`spawn failed: ${result.reason}`);
+  const state = result.state;
+  const settings = makeSettings(opts.settings ?? {});
+  const controller = new InputController(settings);
+  const publishesList: import("../engine/gameState.ts").EngineSnapshot[] = [];
+  const phaseList: Phase[] = [];
+  const matchList: LoopMatchResult[] = [];
+  const counters = { toggle: 0, resetView: 0 };
+  const loop = new GameLoop({
+    getEngine: () => state,
+    matchMode: outcomeMatchMode(opts.outcomes, opts.variantId ?? start.id),
+    controller,
+    onSnapshot: (s) => publishesList.push(s),
+    onPhase: (p) => phaseList.push(p),
+    onMatchResult: (r) => matchList.push(r),
+    onToggleSolution: () => {
+      counters.toggle++;
+    },
+    onResetView: () => {
+      counters.resetView++;
+    },
+    getHandling: () => settings.handling,
+  });
+  return {
+    state,
+    controller,
+    loop,
+    publishesList,
+    phaseList,
+    matchList,
+    counters,
+    acceptedOutcomes: opts.outcomes,
+  };
+}
+
+describe("GameLoop: V2 outcome mode", () => {
+  it("does not solve before the first lock even if the initial field already matches an outcome", () => {
+    // Pre-fill the field with an O block that matches the outcome mask, so
+    // the matcher would return a hit if asked. The loop must still emit
+    // pending because we only evaluate on the post-lock path.
+    const out: AcceptedOutcome = {
+      id: "o-floor",
+      label: "O floor",
+      mask: oFloorMask(),
+      explanation: "O on the floor",
+    };
+    const h = spawnOutcomeEngine({
+      start: makePlayableStart({ active: "O", queue: [] }),
+      outcomes: [out],
+    });
+    // Manually pre-fill the field with O cells at row 0-1.
+    for (let x = 0; x < BOARD_WIDTH; x++) {
+      h.state.field[0][x] = { kind: "filled", piece: "O" };
+      h.state.field[1][x] = { kind: "filled", piece: "O" };
+    }
+    // Trigger the loop's initial match result via setEngine (the same path
+    // useTrainer takes on a fresh drill / variant run).
+    h.loop.setEngine(h.state, outcomeMatchMode([out]));
+    expect(h.matchList).toEqual([{ status: "pending" }]);
+  });
+
+  it("solves after a matching lock", () => {
+    const out: AcceptedOutcome = {
+      id: "o-floor",
+      label: "O floor",
+      mask: oFloorMask(),
+      explanation: "O on the floor",
+    };
+    const h = spawnOutcomeEngine({
+      start: makePlayableStart({ active: "O", queue: [] }),
+      outcomes: [out],
+    });
+    apply(h, { code: "Space" }); // hardDrop O
+    expect(h.matchList.at(-1)).toMatchObject({
+      status: "solved",
+      outcome: { id: "o-floor" },
+    });
+  });
+
+  it("solves even if pieces remain in the queue", () => {
+    const out: AcceptedOutcome = {
+      id: "o-floor",
+      label: "O floor",
+      mask: oFloorMask(),
+      explanation: "O on the floor",
+    };
+    const h = spawnOutcomeEngine({
+      start: makePlayableStart({ active: "O", queue: ["I", "T"] }),
+      outcomes: [out],
+    });
+    apply(h, { code: "Space" });
+    expect(h.matchList.at(-1)?.status).toBe("solved");
+    expect(h.state.active?.piece).toBe("I");
+    expect(h.state.queue).toEqual(["T"]);
+  });
+
+  it("keeps solved sticky after a later non-matching lock attempt (no piece)", () => {
+    const out: AcceptedOutcome = {
+      id: "o-floor",
+      label: "O floor",
+      mask: oFloorMask(),
+      explanation: "O on the floor",
+    };
+    const h = spawnOutcomeEngine({
+      start: makePlayableStart({ active: "O", queue: [] }),
+      outcomes: [out],
+    });
+    apply(h, { code: "Space" }); // first lock, solves
+    expect(h.matchList.at(-1)?.status).toBe("solved");
+    // Second hardDrop: active is null (queue empty), hardDrop returns ok:false;
+    // post-lock path not entered; sticky solved should remain.
+    apply(h, { code: "Space" });
+    expect(h.matchList.at(-1)?.status).toBe("solved");
+  });
+
+  it("clears solved to pending on undo", () => {
+    const out: AcceptedOutcome = {
+      id: "o-floor",
+      label: "O floor",
+      mask: oFloorMask(),
+      explanation: "O on the floor",
+    };
+    const h = spawnOutcomeEngine({
+      start: makePlayableStart({ active: "O", queue: ["T"] }),
+      outcomes: [out],
+    });
+    apply(h, { code: "Space" });
+    expect(h.matchList.at(-1)?.status).toBe("solved");
+    apply(h, { code: "Backspace" });
+    expect(h.matchList.at(-1)?.status).toBe("pending");
+  });
+
+  it("undo from a multi-lock state clears solved and does not re-solve even if the restored board matches", () => {
+    // Solve on the first lock, place another piece, then undo back to a board
+    // that still matches the solved outcome. The post-undo match result must
+    // be pending: undo clears outcome state and does not re-run the matcher.
+    const outOFloor: AcceptedOutcome = {
+      id: "o-floor",
+      label: "O floor",
+      mask: oFloorMask(),
+      explanation: "O on the floor",
+    };
+    const h = spawnOutcomeEngine({
+      start: makePlayableStart({ active: "O", queue: ["I"] }),
+      outcomes: [outOFloor],
+    });
+    apply(h, { code: "Space" }); // O lock -> solved.
+    expect(h.matchList.at(-1)?.status).toBe("solved");
+
+    // Place I as a second lock. Solved remains sticky.
+    apply(h, { code: "Space" });
+    expect(h.matchList.at(-1)?.status).toBe("solved");
+
+    apply(h, { code: "Backspace" });
+    // Undo restored the post-O state. The board still matches an outcome,
+    // but the loop must not re-evaluate and emit solved.
+    expect(h.matchList.at(-1)?.status).toBe("pending");
+  });
+
+  it("clears solved to pending on reset", () => {
+    const out: AcceptedOutcome = {
+      id: "o-floor",
+      label: "O floor",
+      mask: oFloorMask(),
+      explanation: "O on the floor",
+    };
+    const h = spawnOutcomeEngine({
+      start: makePlayableStart({ active: "O", queue: [] }),
+      outcomes: [out],
+    });
+    apply(h, { code: "Space" });
+    expect(h.matchList.at(-1)?.status).toBe("solved");
+    h.loop.reset();
+    expect(h.matchList.at(-1)?.status).toBe("pending");
+  });
+
+  it("clears solved to pending on setEngine / variant change", () => {
+    const out: AcceptedOutcome = {
+      id: "o-floor",
+      label: "O floor",
+      mask: oFloorMask(),
+      explanation: "O on the floor",
+    };
+    const h = spawnOutcomeEngine({
+      start: makePlayableStart({ active: "O", queue: [] }),
+      outcomes: [out],
+    });
+    apply(h, { code: "Space" });
+    expect(h.matchList.at(-1)?.status).toBe("solved");
+    // Simulate a variant change: build a new engine and setEngine with a
+    // new matchMode (same outcome list, new variant id).
+    const nextStart = makePlayableStart({
+      id: "v2-variant-2",
+      active: "O",
+      queue: [],
+    });
+    const next = createEngineFromPlayableStart(nextStart);
+    if (!next.ok) throw new Error(next.reason);
+    h.loop.setEngine(next.state, outcomeMatchMode([out], "v2-variant-2"));
+    expect(h.matchList.at(-1)?.status).toBe("pending");
+  });
+
+  it("emits incomplete when the queue is exhausted without a match", () => {
+    // Outcome mask does not match the post-lock O field (uses I instead).
+    const out: AcceptedOutcome = {
+      id: "i-floor",
+      label: "I floor",
+      mask: iShelfMask(),
+      explanation: "I on the floor",
+    };
+    const h = spawnOutcomeEngine({
+      start: makePlayableStart({ active: "O", queue: [] }),
+      outcomes: [out],
+    });
+    apply(h, { code: "Space" });
+    expect(h.matchList.at(-1)?.status).toBe("incomplete");
+  });
+
+  it("does not require or consult strict routes", () => {
+    // Build an outcome-mode loop with empty acceptedSolutions (effectively
+    // "no strict routes configured"). The strictRouteMatchMode path is
+    // never taken; the outcome path is the only one evaluated.
+    const out: AcceptedOutcome = {
+      id: "o-floor",
+      label: "O floor",
+      mask: oFloorMask(),
+      explanation: "O on the floor",
+    };
+    const h = spawnOutcomeEngine({
+      start: makePlayableStart({ active: "O", queue: [] }),
+      outcomes: [out],
+    });
+    apply(h, { code: "Space" });
+    expect(h.matchList.at(-1)).toMatchObject({
+      status: "solved",
+      outcome: { id: "o-floor" },
+    });
+  });
+
+  it("emits solved and enters topOutUndoable when a matching lock causes a post-lock spawn collision", () => {
+    // O spawns at the floor. After the O lock, T tries to spawn into a
+    // blocked T-spawn area. The lock matches the outcome; the spawn
+    // collision sets status to blocked, phase topOutUndoable. Match
+    // result: solved.
+    const out: AcceptedOutcome = {
+      id: "o-floor",
+      label: "O floor",
+      mask: oFloorMask(),
+      explanation: "O on the floor",
+    };
+    const result = createEngineFromPlayableStart(
+      makePlayableStart({ active: "O", queue: ["T"] }),
+    );
+    if (!result.ok) throw new Error(result.reason);
+    const state = result.state;
+    // Move O down to the floor first so its lock position is clear.
+    for (let i = 0; i < 100; i++) {
+      if (!moveDown(state).ok) break;
+    }
+    // Block T's spawn cells: (3,20), (4,20), (5,20), (4,21).
+    state.field[20][3] = { kind: "filled", piece: "L" };
+    state.field[20][4] = { kind: "filled", piece: "L" };
+    state.field[20][5] = { kind: "filled", piece: "L" };
+    state.field[21][4] = { kind: "filled", piece: "L" };
+    state.initial = engineSnapshot(state);
+    state.history = [];
+
+    const controller = new InputController(makeSettings());
+    const publishesList: import("../engine/gameState.ts").EngineSnapshot[] = [];
+    const phaseList: Phase[] = [];
+    const matchList: LoopMatchResult[] = [];
+    const loop = new GameLoop({
+      getEngine: () => state,
+      matchMode: outcomeMatchMode([out]),
+      controller,
+      onSnapshot: (s) => publishesList.push(s),
+      onPhase: (p) => phaseList.push(p),
+      onMatchResult: (r) => matchList.push(r),
+      onToggleSolution: () => {},
+      onResetView: () => {},
+      getHandling: () => DEFAULT_HANDLING,
+    });
+
+    loop.dispatch(controller.press("Space", {})); // hardDrop O
+    expect(loop.getPhase()).toBe("topOutUndoable");
+    expect(state.status).toBe("blocked");
+    expect(matchList.at(-1)).toMatchObject({
+      status: "solved",
+      outcome: { id: "o-floor" },
+    });
+
+    // Undo should clear solved to pending even though the post-undo board
+    // still matches the outcome.
+    loop.dispatch(controller.press("Backspace", {}));
+    expect(matchList.at(-1)?.status).toBe("pending");
+  });
+});
