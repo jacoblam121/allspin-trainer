@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type {
   DrillV2,
   SolutionRoute,
@@ -6,6 +6,11 @@ import type {
 } from "../drills/drillTypesV2.ts";
 import type { CatalogEntry, SourceCatalog } from "../drills/drillTypesV2.ts";
 import type { LoopMatchResult, Phase } from "../loop/gameLoop.ts";
+import { StepBoard } from "./StepBoard.tsx";
+import {
+  buildSolutionSteps,
+  formatSolutionReplayError,
+} from "../drills/solutionSteps.ts";
 
 function matchText(matchResult: LoopMatchResult | null): string {
   switch (matchResult?.status) {
@@ -76,7 +81,19 @@ export function V2DrillPanel({
   const b2b = variant?.b2bActive === true;
   const combo = variant?.combo ?? 0;
   const hole = variant?.garbageHoleColumn;
-  const routes = variant ? routesForVariant(drill, variant.id) : [];
+
+  // Memoized route replay results for the current variant. Each entry pairs
+  // the authored route with its buildSolutionSteps result, so the panel can
+  // render compact step boards on success or an inline authoring error on
+  // failure without re-running replay on every render.
+  const routeResults = useMemo(() => {
+    if (!variant) return [];
+    const variantRoutes = routesForVariant(drill, variant.id);
+    return variantRoutes.map((route) => ({
+      route,
+      replayResult: buildSolutionSteps(variant, route, drill.acceptedOutcomes),
+    }));
+  }, [variant, drill]);
 
   const [copyState, setCopyState] = useState<"idle" | "copied" | "manual">(
     "idle",
@@ -277,12 +294,12 @@ export function V2DrillPanel({
         {showSolution ? (
           <>
             <h3 className="solution__heading">Routes for this variant</h3>
-            {routes.length === 0 ? (
+            {routeResults.length === 0 ? (
               <p className="solution__text">
                 No authored routes for the current variant.
               </p>
             ) : (
-              routes.map((route) => (
+              routeResults.map(({ route, replayResult }) => (
                 <div className="solution__entry" key={route.id}>
                   <p className="solution__label">{route.label}</p>
                   <ol className="solution__placements">
@@ -293,6 +310,24 @@ export function V2DrillPanel({
                       </li>
                     ))}
                   </ol>
+                  {replayResult.ok ? (
+                    <div className="solution__steps">
+                      {replayResult.steps.map((step, i) => (
+                        <div className="solution__step" key={i}>
+                          <p className="solution__step-label">{step.label}</p>
+                          <StepBoard
+                            field={step.field}
+                            ariaLabel={`Solution step ${i + 1}`}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="solution__replay-error" role="alert">
+                      Route replay unavailable:{" "}
+                      {formatSolutionReplayError(replayResult.error)}
+                    </p>
+                  )}
                   <p className="solution__text">{route.explanation}</p>
                 </div>
               ))

@@ -14,6 +14,11 @@ import {
   DEFAULT_HANDLING,
   DEFAULT_KEYBINDS,
 } from "../input/defaultSettings.ts";
+import {
+  buildSolutionSteps,
+  validateRoutePieceOrder,
+} from "./solutionSteps.ts";
+import { matchesBoardMask } from "./outcomeMatcher.ts";
 
 describe("V2 source catalog", () => {
   it("loads via loadSourceCatalog", () => {
@@ -199,5 +204,67 @@ describe("V2 smoke pack plays to solved via GameLoop outcome mode", () => {
     expect(state.hold).toBe("O");
     expect(state.queue).toEqual(["I"]);
     expect(state.canHold).toBe(false);
+  });
+});
+
+describe("V2 smoke pack route replay", () => {
+  const catalog = loadSourceCatalog(sourceCatalog);
+  const pack = loadDrillPackV2(v2Smoke, catalog);
+  const drill = pack.drills[0];
+
+  it("every bundled route has reachable piece order", () => {
+    for (const variant of drill.variants) {
+      const routes = drill.solutionRoutes.filter(
+        (r) => r.variantId === variant.id,
+      );
+      for (const route of routes) {
+        const result = validateRoutePieceOrder(variant, route);
+        expect(result.ok).toBe(true);
+      }
+    }
+  });
+
+  it("every bundled route replays successfully", () => {
+    for (const variant of drill.variants) {
+      const routes = drill.solutionRoutes.filter(
+        (r) => r.variantId === variant.id,
+      );
+      for (const route of routes) {
+        const result = buildSolutionSteps(
+          variant,
+          route,
+          drill.acceptedOutcomes,
+        );
+        expect(result.ok).toBe(true);
+      }
+    }
+  });
+
+  it("route-o-then-i generates exactly two steps", () => {
+    const variant = drill.variants[0];
+    const route = drill.solutionRoutes.find((r) => r.id === "route-o-then-i");
+    expect(route).toBeDefined();
+    if (route === undefined) return;
+    const result = buildSolutionSteps(variant, route, drill.acceptedOutcomes);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.steps).toHaveLength(2);
+  });
+
+  it("the final smoke step matches o-floor-i-over", () => {
+    const variant = drill.variants[0];
+    const route = drill.solutionRoutes.find((r) => r.id === "route-o-then-i");
+    expect(route).toBeDefined();
+    if (route === undefined) return;
+    const outcome = drill.acceptedOutcomes.find(
+      (o) => o.id === "o-floor-i-over",
+    );
+    expect(outcome).toBeDefined();
+    if (outcome === undefined) return;
+    const result = buildSolutionSteps(variant, route, drill.acceptedOutcomes);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const finalStep = result.steps[result.steps.length - 1];
+    expect(matchesBoardMask(finalStep.field, outcome.mask)).toBe(true);
   });
 });

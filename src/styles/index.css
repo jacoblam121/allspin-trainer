@@ -2,6 +2,7 @@
   color-scheme: dark;
   --cell: 28px;
   --preview-cell: 16px;
+  --step-cell: 12px;
   --bg: #111;
   --panel: #1a1a1f;
   --panel-border: #2a2a33;
@@ -461,6 +462,53 @@ body {
   font-size: 0.8rem;
   color: var(--muted);
   font-style: italic;
+}
+
+/* --- Sprint 3: compact solution step boards --- */
+
+.solution__steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.3rem 0 0.5rem;
+  overflow-x: auto;
+}
+
+.solution__step {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.solution__step-label {
+  margin: 0;
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.step-board {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--panel-border);
+  background: #050507;
+  padding: 1px;
+}
+
+.step-board__row {
+  display: grid;
+  grid-template-columns: repeat(10, var(--step-cell));
+}
+
+.step-board .cell {
+  width: var(--step-cell);
+  height: var(--step-cell);
+  border: 1px solid #16161c;
+}
+
+.solution__replay-error {
+  margin: 0.3rem 0 0.5rem;
+  font-size: 0.76rem;
+  color: #ef7a7a;
 }
 
 /* --- Sprint 3: active / ghost / top-out / settings --- */
