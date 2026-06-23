@@ -1,9 +1,9 @@
 # Allspin Trainer
 
-Playable TETR.IO-oriented drill sandbox (MVP 1).
+Playable TETR.IO-oriented drill sandbox (MVP 2 seed curriculum).
 
 Allspin Trainer is a focused environment for practicing advanced midgame
-patterns (T-spins, O-spins, stacks, finesse). The drill model is
+patterns (all-spins, Core T-spins, stacks, finesse). The drill model is
 JSON-canonical; the engine is UI-agnostic; the React layer is a thin view
 over engine snapshots driven by a `requestAnimationFrame` loop.
 
@@ -27,12 +27,75 @@ npm run build         # tsc -b && vite build
 git diff --check
 ```
 
-## MVP 1 Scope
+## MVP 2 Seed Scope
 
-In scope:
+Current scope (MVP 2 seed curriculum scaffold):
+
+- A 12-drill seed pack (`src/drills/packs/mvp2-seed.json`) with 14 authored
+  variants and 14 routed solutions: 8 all-spin drills (one with 2 variants)
+  and 4 Core T-spin drills (one with 2 variants).
+- Authored variants under one curriculum drill, with authored
+  `hold: PieceId | null`.
+- Outcome-mask success: a drill passes once the locked board matches an
+  authored final-form mask; strict route matching is no longer the runtime
+  pass/fail mechanism.
+- Generated visual solution step-through: native board snapshots rendered
+  from `buildSolutionSteps` replaying the authored placements, applying line
+  clears, and validating the final field against the linked accepted
+  outcome.
+- A structured source catalog (`src/drills/sourceCatalog.json`) covering the
+  all-spin, Core T-spin, and 6-3 / Hole Picture docs with playable / backlog
+  / deferred entries.
+
+Important content note: the current Sprint 4 seed drills prove the V2
+authoring, loading, replay, outcome-mask, and catalog pipeline. They should
+be treated as an intermediate technical scaffold, not authoritative all-spin
+or Core T-spin curriculum. Before publishing the drills as real practice
+content, each playable drill needs a domain-authoring pass against real
+source diagrams or known playable setups, plus a human playability check in
+the browser or another trusted Tetris environment.
+
+Implicit modeling limit (still true in MVP 2): masks are shape-based. The
+trainer can certify that the locked board reached an authored final form,
+but it does not certify that the player performed a T-spin, all-spin, or
+B2B-preserving clear. Drill goals and explanations use final-form, shape
+recognition, residue, setup, and intended-route wording, and name the
+model limit where the technique label could otherwise overpromise.
+
+Final-form masks are acceptance targets, not the lesson by themselves. A
+real drill should start from a meaningful board/queue context and train the
+player to reach the accepted form. Empty-board synthetic shapes are useful
+only as scaffolding until replaced or validated.
+
+Two future learning modes are _named_ in MVP 2 docs but not yet built:
+
+- **Guided**: the app shows the intended route / order / step boards up
+  front and teaches how to build the target form.
+- **Drill**: the app hides the route, checks only the accepted outcome mask,
+  and trusts the player to use the intended technique.
+
+Sprint 4 retains the existing solution reveal as the lightweight guided
+path. A real `Guided | Drill` mode toggle belongs to a later polish sprint.
+
+Technical checkpoint: automated verification and a manual browser smoke have
+confirmed that the active seed pack appears in the app, drill selection works,
+both multi-variant drills switch variants, Show Solution renders StepBoards,
+the solved state appears when an accepted outcome is reached, and the existing
+reset / undo / new-variant / fumen-export flows remain intact. This confirms
+the V2 product wiring, not curriculum accuracy.
+
+## MVP 1 Scope (Legacy)
+
+MVP 1 is the strict-route sandbox baseline. It still loads and runs through
+the legacy `src/drills/packs/mvp1.json` pack and the strict-route
+`MatchMode` for compatibility/tests, but it is no longer the active product
+pack and is hidden from the product UI.
+
+Legacy in scope:
 
 - 5 small, verified MVP drills (`src/drills/packs/mvp1.json`).
-- Static queues and strict accepted-route matching.
+- Static queues and strict accepted-route matching (legacy runtime
+  compatibility only).
 - SRS / SRS+ / 180 rotation kicks; 7-bag piece pool.
 - TETR.IO-style handling: DAS, ARR, DCD, SDF, gravity.
 - Fumen export of the current locked board (visible 20 rows only).
@@ -42,14 +105,12 @@ Out of scope (deferred):
 
 - Fumen import, playable import, draft drills, import preview.
 - Active-piece fumen operation export.
-- Randomized queues, route variants, queue variants.
-- Outcome / final-board matching.
+- Randomized queues (beyond authored variants), generated variants.
 - Spin / B2B / combo classification.
 - Evaluator, solver, pathfinding replay.
 - ARE / lock-delay finesse tuning.
 - CV / TETR.IO integration, botting, multiplayer.
 - Broad curriculum generation.
-- Visual board rendering of accepted solutions (currently shown as text coordinates + explanation; a fumen-style step-by-step board view is the eventual goal).
 - Settings layout overhaul.
 - UI / jsdom automated tests.
 - Canvas renderer migration.
@@ -92,24 +153,37 @@ dependency so fumen can be swapped or removed without disturbing the core.
 
 ## Drill JSON Is Canonical
 
-`src/drills/packs/mvp1.json` is the source of truth for drills. The engine
-does not interpret a separate drill DSL; the loader (`src/drills/drillLoader.ts`)
-parses, validates, and rejects malformed input. A `Drill` includes:
+The active canonical product pack is `src/drills/packs/mvp2-seed.json`
+(pack id `mvp2-seed`, "MVP 2 Seed Curriculum"). It loads through the V2
+drill pack loader (`src/drills/drillLoaderV2.ts`) against the structured
+source catalog (`src/drills/sourceCatalog.json`). Its current content is an
+intermediate scaffold for the authoring pipeline; do not treat the named
+technique drills as curriculum-accurate until they pass a later content
+validation pass.
 
-- `id`, `title`, `category`, `tags`, optional `source` URL.
-- `ruleset` (currently `"tetrio-default"`).
-- `board`: bottom-origin rows of width 10. Each cell is `null`,
-  `{kind:"garbage"}`, or `{kind:"filled", piece}`.
-- `active` piece, `hold` (must be `null` at drill start), and `queue`.
-- Optional `b2bActive`, `combo`, `garbageHoleColumn` — display metadata.
-- `goal` and at least one `acceptedSolutions` entry (each with at least one
-  authored `placement` and an `explanation`).
+`src/drills/packs/v2-smoke.json` is a V2 fixture-only smoke pack retained
+for transition tests; no product code or catalog entry references it after
+Sprint 4. `src/drills/packs/mvp1.json` is the legacy MVP 1 strict-route pack
+and has been superseded.
+
+The engine does not interpret a separate drill DSL; the V2 loader parses,
+validates, and rejects malformed input with path-specific errors. A V2
+`Drill` includes:
+
+- `id`, `title`, `category`, `family`, `tags`, optional `difficulty`,
+  optional `sourceRefs` (whose `catalogId` must resolve in the source
+  catalog).
+- `goal` and at least one `acceptedOutcomes` entry (each a board mask with
+  optional `variantIds` and an `explanation`).
+- `variants` (one or more), `acceptedOutcomes` (one or more), and
+  `solutionRoutes` (one or more). Every accepted outcome must include
+  explicit `variantIds` in the seed pack.
 - Optional `badTemptations` listing anti-patterns to highlight when the
   solution is shown.
-- Optional `fumen?` — author reference only.
 
-A `Drill` is statically authored; there is no randomization, no route
-variants, no queue variants, and no outcome matching in MVP 1.
+A `DrillV2` is statically authored: authored variants only (no
+randomization, no generated variants) and outcome-mask success (no strict
+runtime route matching for V2).
 
 ## Architecture Boundaries
 
@@ -148,14 +222,29 @@ src/
     tetrominoes.ts              # cellsOf(piece, rotation, x, y)
     tetrominoes.test.ts
   drills/
-    drillLoader.ts              # JSON validator; rejects empty + duplicate ids
+    drillTypesV2.ts             # V2 types: DrillV2, DrillVariant, AcceptedOutcome,
+                                # SolutionRoute, SourceRef, source catalog entries
+    drillLoaderV2.ts            # V2 runtime validators (loadSourceCatalog,
+                                # loadDrillPackV2) with path-specific errors
+    drillLoaderV2.test.ts
+    playableStart.ts            # PlayableStart shape + adapter from DrillVariant
+    outcomeMatcher.ts           # Board-mask matcher for V2 accepted outcomes
+    outcomeMatcher.test.ts
+    solutionSteps.ts            # V2 route replay + piece-order + outcome check
+    solutionSteps.test.ts
+    v2SmokePack.test.ts         # V2 smoke fixture tests (fixture-only)
+    mvp2SeedPack.test.ts        # MVP 2 seed pack smoke tests
+    sourceCatalog.json          # Structured source catalog (V1)
+    drillLoader.ts              # Legacy MVP 1 JSON validator (rejects empty + dup ids)
     drillLoader.test.ts
-    drillTypes.ts
-    solutionMatcher.ts          # Compares placement history to accepted routes
+    drillTypes.ts               # Legacy MVP 1 drill types
+    solutionMatcher.ts          # Legacy: compares placement history to accepted routes
     solutionMatcher.test.ts
-    mvp1Pack.test.ts            # Pack-level placement-collision smoke test
+    mvp1Pack.test.ts            # Legacy MVP 1 pack-level collision smoke test
     packs/
-      mvp1.json                 # 5 verified MVP drills
+      mvp2-seed.json            # Active MVP 2 seed curriculum pack (12 drills)
+      v2-smoke.json             # V2 fixture-only smoke pack (not a product pack)
+      mvp1.json                 # 5 legacy MVP-1 strict-route drills
   fumen/
     fumenAdapter.ts             # exportVisiblePlayfieldToFumen(field)
     fumenAdapter.test.ts
@@ -171,7 +260,10 @@ src/
     snapshotChanged.ts
   ui/
     Board.tsx
-    DrillPanel.tsx              # Drill list + accepted solution + Tools
+    V2DrillPanel.tsx           # V2 drill list + variant controls + outcome +
+                               # visual solution + Tools
+    DrillPanel.tsx             # Legacy MVP-1 panel (kept for compatibility)
+    StepBoard.tsx              # Compact field-only solution step board
     HoldQueue.tsx
     PiecePreview.tsx
     SettingsPanel.tsx

@@ -958,14 +958,13 @@ describe("loadDrillPackV2", () => {
 });
 
 describe("bundled V2 source catalog", () => {
-  it("loads without error and includes the smoke drill id in the playable entry", () => {
+  it("loads without error and has no catalog entry referencing the smoke drill", () => {
     const catalog = loadSourceCatalog(sourceCatalog);
     expect(catalog.version).toBe(1);
     const smoke = catalog.entries.find((e) =>
       e.drillIds.includes("v2-smoke-hold-route-001"),
     );
-    expect(smoke).toBeDefined();
-    expect(smoke?.status).toBe("playable");
+    expect(smoke).toBeUndefined();
   });
 });
 

@@ -2,6 +2,19 @@
   "version": 1,
   "entries": [
     {
+      "id": "allspin-validity",
+      "title": "TETR.IO-valid vs not-valid all-spin example",
+      "family": "all-spin",
+      "source": {
+        "title": "Sustaining Back-to-Backs with All-Spins",
+        "path": "docs/Sustaining Back-to-Backs with All-Spins – How to Tetris.pdf"
+      },
+      "tags": ["all-spin", "validity"],
+      "priority": "seed",
+      "status": "playable",
+      "drillIds": ["mvp2-seed-allspin-validity"]
+    },
+    {
       "id": "allspin-secondary-b2b-filler",
       "title": "All-spin as secondary B2B filler",
       "family": "all-spin",
@@ -12,21 +25,7 @@
       "tags": ["all-spin", "b2b", "filler"],
       "priority": "seed",
       "status": "playable",
-      "drillIds": ["v2-smoke-hold-route-001"],
-      "notes": "Smoke entry: V2 data-path only; do not author full drill until Sprint 4."
-    },
-    {
-      "id": "allspin-validity",
-      "title": "TETR.IO-valid vs not-valid all-spin example",
-      "family": "all-spin",
-      "source": {
-        "title": "Sustaining Back-to-Backs with All-Spins",
-        "path": "docs/Sustaining Back-to-Backs with All-Spins – How to Tetris.pdf"
-      },
-      "tags": ["all-spin", "validity"],
-      "priority": "high",
-      "status": "backlog",
-      "drillIds": []
+      "drillIds": ["mvp2-seed-allspin-secondary-b2b-filler"]
     },
     {
       "id": "allspin-stack-balance",
@@ -37,9 +36,9 @@
         "path": "docs/Sustaining Back-to-Backs with All-Spins – How to Tetris.pdf"
       },
       "tags": ["all-spin", "stack-balance"],
-      "priority": "high",
-      "status": "backlog",
-      "drillIds": []
+      "priority": "seed",
+      "status": "playable",
+      "drillIds": ["mvp2-seed-allspin-stack-balance"]
     },
     {
       "id": "allspin-local-parity-repair",
@@ -50,9 +49,9 @@
         "path": "docs/Sustaining Back-to-Backs with All-Spins – How to Tetris.pdf"
       },
       "tags": ["all-spin", "parity"],
-      "priority": "high",
-      "status": "backlog",
-      "drillIds": []
+      "priority": "seed",
+      "status": "playable",
+      "drillIds": ["mvp2-seed-allspin-local-parity-repair"]
     },
     {
       "id": "allspin-clean-vs-dirty",
@@ -63,9 +62,9 @@
         "path": "docs/Sustaining Back-to-Backs with All-Spins – How to Tetris.pdf"
       },
       "tags": ["all-spin", "aftermath"],
-      "priority": "high",
-      "status": "backlog",
-      "drillIds": []
+      "priority": "seed",
+      "status": "playable",
+      "drillIds": ["mvp2-seed-allspin-clean-vs-dirty"]
     },
     {
       "id": "scarlet",
@@ -76,9 +75,9 @@
         "path": "docs/Sustaining Back-to-Backs with All-Spins – How to Tetris.pdf"
       },
       "tags": ["all-spin", "scarlet"],
-      "priority": "high",
-      "status": "backlog",
-      "drillIds": []
+      "priority": "seed",
+      "status": "playable",
+      "drillIds": ["mvp2-seed-allspin-scarlet"]
     },
     {
       "id": "coral",
@@ -89,9 +88,9 @@
         "path": "docs/Sustaining Back-to-Backs with All-Spins – How to Tetris.pdf"
       },
       "tags": ["all-spin", "coral"],
-      "priority": "high",
-      "status": "backlog",
-      "drillIds": []
+      "priority": "seed",
+      "status": "playable",
+      "drillIds": ["mvp2-seed-allspin-coral"]
     },
     {
       "id": "amaranth",
@@ -102,7 +101,33 @@
         "path": "docs/Sustaining Back-to-Backs with All-Spins – How to Tetris.pdf"
       },
       "tags": ["all-spin", "amaranth"],
-      "priority": "high",
+      "priority": "seed",
+      "status": "playable",
+      "drillIds": ["mvp2-seed-allspin-amaranth"]
+    },
+    {
+      "id": "allspin-meta-methods-backlog",
+      "title": "All-spin meta methods (backlog)",
+      "family": "all-spin",
+      "source": {
+        "title": "Sustaining Back-to-Backs with All-Spins",
+        "path": "docs/Sustaining Back-to-Backs with All-Spins – How to Tetris.pdf"
+      },
+      "tags": ["all-spin", "meta"],
+      "priority": "normal",
+      "status": "backlog",
+      "drillIds": []
+    },
+    {
+      "id": "allspin-non-meta-methods-backlog",
+      "title": "All-spin non-meta methods (backlog)",
+      "family": "all-spin",
+      "source": {
+        "title": "Sustaining Back-to-Backs with All-Spins",
+        "path": "docs/Sustaining Back-to-Backs with All-Spins – How to Tetris.pdf"
+      },
+      "tags": ["all-spin", "non-meta"],
+      "priority": "later",
       "status": "backlog",
       "drillIds": []
     },
@@ -115,9 +140,9 @@
         "path": "docs/Core T-spin Methods – How to Tetris.pdf"
       },
       "tags": ["core-tspin", "kaidan"],
-      "priority": "high",
-      "status": "backlog",
-      "drillIds": []
+      "priority": "seed",
+      "status": "playable",
+      "drillIds": ["mvp2-seed-core-kaidan"]
     },
     {
       "id": "parapet",
@@ -128,9 +153,9 @@
         "path": "docs/Core T-spin Methods – How to Tetris.pdf"
       },
       "tags": ["core-tspin", "parapet"],
-      "priority": "high",
-      "status": "backlog",
-      "drillIds": []
+      "priority": "seed",
+      "status": "playable",
+      "drillIds": ["mvp2-seed-core-parapet"]
     },
     {
       "id": "stmb-cave-clean",
@@ -141,9 +166,9 @@
         "path": "docs/Core T-spin Methods – How to Tetris.pdf"
       },
       "tags": ["core-tspin", "stmb", "cave"],
-      "priority": "high",
-      "status": "backlog",
-      "drillIds": []
+      "priority": "seed",
+      "status": "playable",
+      "drillIds": ["mvp2-seed-core-stmb-cave-clean"]
     },
     {
       "id": "stmb-cave-dirty",
@@ -167,7 +192,20 @@
         "path": "docs/Core T-spin Methods – How to Tetris.pdf"
       },
       "tags": ["core-tspin", "sky-prop"],
-      "priority": "high",
+      "priority": "seed",
+      "status": "playable",
+      "drillIds": ["mvp2-seed-core-sky-prop"]
+    },
+    {
+      "id": "stsd",
+      "title": "STSD",
+      "family": "core-tspin",
+      "source": {
+        "title": "Core T-spin Methods",
+        "path": "docs/Core T-spin Methods – How to Tetris.pdf"
+      },
+      "tags": ["core-tspin", "stsd"],
+      "priority": "normal",
       "status": "backlog",
       "drillIds": []
     },
@@ -185,15 +223,80 @@
       "drillIds": []
     },
     {
-      "id": "stsd",
-      "title": "STSD",
+      "id": "core-tspin-one-piece-props",
+      "title": "One-piece props",
       "family": "core-tspin",
       "source": {
         "title": "Core T-spin Methods",
         "path": "docs/Core T-spin Methods – How to Tetris.pdf"
       },
-      "tags": ["core-tspin", "stsd"],
+      "tags": ["core-tspin", "one-piece-props"],
       "priority": "normal",
+      "status": "backlog",
+      "drillIds": []
+    },
+    {
+      "id": "yoshihiro",
+      "title": "Yoshihiro",
+      "family": "core-tspin",
+      "source": {
+        "title": "Core T-spin Methods",
+        "path": "docs/Core T-spin Methods – How to Tetris.pdf"
+      },
+      "tags": ["core-tspin", "yoshihiro"],
+      "priority": "normal",
+      "status": "backlog",
+      "drillIds": []
+    },
+    {
+      "id": "imperial-cross",
+      "title": "Imperial Cross",
+      "family": "core-tspin",
+      "source": {
+        "title": "Core T-spin Methods",
+        "path": "docs/Core T-spin Methods – How to Tetris.pdf"
+      },
+      "tags": ["core-tspin", "imperial-cross"],
+      "priority": "normal",
+      "status": "backlog",
+      "drillIds": []
+    },
+    {
+      "id": "dt-cannon",
+      "title": "DT Cannon",
+      "family": "core-tspin",
+      "source": {
+        "title": "Core T-spin Methods",
+        "path": "docs/Core T-spin Methods – How to Tetris.pdf"
+      },
+      "tags": ["core-tspin", "dt-cannon"],
+      "priority": "later",
+      "status": "backlog",
+      "drillIds": []
+    },
+    {
+      "id": "c-spin",
+      "title": "C-spin",
+      "family": "core-tspin",
+      "source": {
+        "title": "Core T-spin Methods",
+        "path": "docs/Core T-spin Methods – How to Tetris.pdf"
+      },
+      "tags": ["core-tspin", "c-spin"],
+      "priority": "normal",
+      "status": "backlog",
+      "drillIds": []
+    },
+    {
+      "id": "cut-copy",
+      "title": "Cut / Copy",
+      "family": "core-tspin",
+      "source": {
+        "title": "Core T-spin Methods",
+        "path": "docs/Core T-spin Methods – How to Tetris.pdf"
+      },
+      "tags": ["core-tspin", "cut-copy"],
+      "priority": "later",
       "status": "backlog",
       "drillIds": []
     },
@@ -206,6 +309,45 @@
         "path": "docs/The Hole Picture – Galactoid's Tetris Guides and Research.pdf"
       },
       "tags": ["63", "hole-picture"],
+      "priority": "later",
+      "status": "deferred",
+      "drillIds": []
+    },
+    {
+      "id": "six-three-wumbole-method",
+      "title": "6-3 wumbole method",
+      "family": "stacking",
+      "source": {
+        "title": "The Hole Picture",
+        "path": "docs/The Hole Picture – Galactoid's Tetris Guides and Research.pdf"
+      },
+      "tags": ["63", "wumbole"],
+      "priority": "later",
+      "status": "backlog",
+      "drillIds": []
+    },
+    {
+      "id": "five-four-stacking-rules",
+      "title": "5-4 stacking rules",
+      "family": "stacking",
+      "source": {
+        "title": "The Hole Picture",
+        "path": "docs/The Hole Picture – Galactoid's Tetris Guides and Research.pdf"
+      },
+      "tags": ["stacking", "5-4"],
+      "priority": "later",
+      "status": "deferred",
+      "drillIds": []
+    },
+    {
+      "id": "hole-picture-other-columns",
+      "title": "Hole Picture other columns",
+      "family": "stacking",
+      "source": {
+        "title": "The Hole Picture",
+        "path": "docs/The Hole Picture – Galactoid's Tetris Guides and Research.pdf"
+      },
+      "tags": ["hole-picture", "columns"],
       "priority": "later",
       "status": "deferred",
       "drillIds": []

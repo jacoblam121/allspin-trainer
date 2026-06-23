@@ -1,0 +1,1074 @@
+{
+  "version": 2,
+  "id": "mvp2-seed",
+  "title": "MVP 2 Seed Curriculum",
+  "drills": [
+    {
+      "id": "mvp2-seed-allspin-validity",
+      "title": "All-spin validity: TETR.IO-valid residue shape",
+      "category": "All-Spin Principle",
+      "family": "all-spin",
+      "tags": ["all-spin", "validity", "residue"],
+      "sourceRefs": [{ "catalogId": "allspin-validity" }],
+      "difficulty": 2,
+      "goal": "Recognize the TETR.IO-valid all-spin residue shelf: a paired S side-tooth (left, lower-then-upper) and a Z side-tooth (right) that keep a one-cell cavity under each overhang. The accepted outcome judges only the final form shape; it does not check that a spin was executed.",
+      "variants": [
+        {
+          "id": "main",
+          "label": "Paired S + Z residue on the floor",
+          "board": [],
+          "active": "S",
+          "hold": null,
+          "queue": ["Z"]
+        }
+      ],
+      "acceptedOutcomes": [
+        {
+          "id": "valid-residue-pair",
+          "label": "Valid paired S+Z residue",
+          "variantIds": ["main"],
+          "explanation": "Final form: S locked flat with its lower row on the floor at columns 0-1 and its upper row stepped up at columns 1-2; Z mirrors this on the right at columns 7-8 (upper) and 8-9 (lower). The gaps under the upper teeth are the all-spin-style cavities. V2 matches the final board cells only.",
+          "mask": [
+            [
+              { "kind": "filled", "piece": "S" },
+              { "kind": "filled", "piece": "S" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "filled", "piece": "Z" },
+              { "kind": "filled", "piece": "Z" }
+            ],
+            [
+              { "kind": "any" },
+              { "kind": "filled", "piece": "S" },
+              { "kind": "filled", "piece": "S" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "filled", "piece": "Z" },
+              { "kind": "filled", "piece": "Z" },
+              { "kind": "any" }
+            ]
+          ]
+        }
+      ],
+      "solutionRoutes": [
+        {
+          "id": "route-s-then-z",
+          "label": "S on the left, Z on the right",
+          "variantId": "main",
+          "outcomeId": "valid-residue-pair",
+          "placements": [
+            { "piece": "S", "x": 0, "y": -1, "rotation": "0" },
+            { "piece": "Z", "x": 7, "y": -1, "rotation": "0" }
+          ],
+          "explanation": "Hard-drop S at engine origin (0, -1): the SRS local grid floats the S one row above the origin, so the lower tooth rests on the floor at columns 0-1 and the upper tooth sits at row 1, columns 1-2. Then hard-drop Z at (7, -1): the lower row rests at columns 8-9 and the upper row rests at columns 7-8. The two cavities under each upper tooth are the recognizable all-spin residue shape."
+        }
+      ],
+      "badTemptations": [
+        {
+          "label": "Flat single-row placement",
+          "explanation": "Laying the pieces flat with no overhang removes the under-tooth cavities. Without a cavity there is no TETR.IO-valid all-spin residue to recognize. Replay of the bad temptation is not modeled in V2; this is a final-form contrast only."
+        }
+      ]
+    },
+    {
+      "id": "mvp2-seed-allspin-secondary-b2b-filler",
+      "title": "All-spin as secondary B2B filler",
+      "category": "All-Spin Principle",
+      "family": "all-spin",
+      "tags": ["all-spin", "b2b", "filler"],
+      "sourceRefs": [{ "catalogId": "allspin-secondary-b2b-filler" }],
+      "difficulty": 2,
+      "goal": "Recognize how an all-spin residue can act as a secondary filler shape that preserves playable parity for the next attack. The accepted outcome judges only the final-form residue; B2B and attack sequence are not modeled in V2.",
+      "variants": [
+        {
+          "id": "filler-left",
+          "label": "S filler on the left side",
+          "board": [],
+          "active": "S",
+          "hold": null,
+          "queue": []
+        },
+        {
+          "id": "filler-right",
+          "label": "Z filler on the right side",
+          "board": [],
+          "active": "Z",
+          "hold": null,
+          "queue": []
+        }
+      ],
+      "acceptedOutcomes": [
+        {
+          "id": "left-s-filler",
+          "label": "Left S filler residue",
+          "variantIds": ["filler-left"],
+          "explanation": "Final form: S nudges left of center with its lower row at columns 1-2 and upper row at columns 2-3. The shape keeps the right side open for the next attack and leaves a one-cell cavity under the upper tooth. Designed for final-form matching only.",
+          "mask": [
+            [
+              { "kind": "any" },
+              { "kind": "filled", "piece": "S" },
+              { "kind": "filled", "piece": "S" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" }
+            ],
+            [
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "filled", "piece": "S" },
+              { "kind": "filled", "piece": "S" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" }
+            ]
+          ]
+        },
+        {
+          "id": "right-z-filler",
+          "label": "Right Z filler residue",
+          "variantIds": ["filler-right"],
+          "explanation": "Final form: Z nudges right of center with its lower row at columns 7-8 and upper row at columns 6-7. The shape keeps the left side open for the next attack and leaves a one-cell cavity under the upper tooth. Designed for final-form matching only.",
+          "mask": [
+            [
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "filled", "piece": "Z" },
+              { "kind": "filled", "piece": "Z" },
+              { "kind": "any" }
+            ],
+            [
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "filled", "piece": "Z" },
+              { "kind": "filled", "piece": "Z" },
+              { "kind": "any" },
+              { "kind": "any" }
+            ]
+          ]
+        }
+      ],
+      "solutionRoutes": [
+        {
+          "id": "route-left-s",
+          "label": "Place the left S filler",
+          "variantId": "filler-left",
+          "outcomeId": "left-s-filler",
+          "placements": [{ "piece": "S", "x": 1, "y": -1, "rotation": "0" }],
+          "explanation": "Hard-drop S at (1, -1): the lower tooth locks at columns 1-2 (row 0) and the upper tooth sits at columns 2-3 (row 1). This is the SRS local-grid floating offset used by the engine."
+        },
+        {
+          "id": "route-right-z",
+          "label": "Place the right Z filler",
+          "variantId": "filler-right",
+          "outcomeId": "right-z-filler",
+          "placements": [{ "piece": "Z", "x": 6, "y": -1, "rotation": "0" }],
+          "explanation": "Hard-drop Z at (6, -1): the lower row locks at columns 7-8 (row 0) and the upper row sits at columns 6-7 (row 1)."
+        }
+      ]
+    },
+    {
+      "id": "mvp2-seed-allspin-stack-balance",
+      "title": "All-spin stack-balance shape",
+      "category": "All-Spin Principle",
+      "family": "all-spin",
+      "tags": ["all-spin", "stack-balance"],
+      "sourceRefs": [{ "catalogId": "allspin-stack-balance" }],
+      "difficulty": 2,
+      "goal": "Recognize a balanced all-spin residue: the same number of stack-height cells on the left and right of the playfield, produced by mirror-method placements. The accepted outcome judges only the final balanced shape; spin execution is not modeled.",
+      "variants": [
+        {
+          "id": "main",
+          "label": "Mirrored L (left) + J (right)",
+          "board": [],
+          "active": "L",
+          "hold": null,
+          "queue": ["J"]
+        }
+      ],
+      "acceptedOutcomes": [
+        {
+          "id": "balanced-lj",
+          "label": "L/J canonical balanced final form",
+          "variantIds": ["main"],
+          "explanation": "Final form: L on the left (flat row at columns 0-2 with the bump pointed up at column 2) and a J on the right (flat row at columns 7-9 with the bump pointed up at column 7). The two bumps are mirror positions, so the leftover cavities balance both stack sides. V2 matches only the locked cells.",
+          "mask": [
+            [
+              { "kind": "filled", "piece": "L" },
+              { "kind": "filled", "piece": "L" },
+              { "kind": "filled", "piece": "L" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "filled", "piece": "J" },
+              { "kind": "filled", "piece": "J" },
+              { "kind": "filled", "piece": "J" }
+            ],
+            [
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "filled", "piece": "L" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "filled", "piece": "J" },
+              { "kind": "any" },
+              { "kind": "any" }
+            ]
+          ]
+        }
+      ],
+      "solutionRoutes": [
+        {
+          "id": "route-lj-mirror",
+          "label": "L on the left, J mirrored on the right",
+          "variantId": "main",
+          "outcomeId": "balanced-lj",
+          "placements": [
+            { "piece": "L", "x": 0, "y": -1, "rotation": "0" },
+            { "piece": "J", "x": 7, "y": -1, "rotation": "0" }
+          ],
+          "explanation": "Hard-drop L at (0, -1) for the left bump pointing up at column 2; then hard-drop J at (7, -1) for the right bump pointing up at column 7. The two raised bumps balance the stack."
+        }
+      ]
+    },
+    {
+      "id": "mvp2-seed-allspin-local-parity-repair",
+      "title": "All-spin local-parity repair shape",
+      "category": "All-Spin Principle",
+      "family": "all-spin",
+      "tags": ["all-spin", "parity", "repair"],
+      "sourceRefs": [{ "catalogId": "allspin-local-parity-repair" }],
+      "difficulty": 3,
+      "goal": "Recognize the parity-repair S posture that sits over a thin mid-board lip and reopens the column parity affected by a prior placement. The accepted outcome judges only the final repair shape; it does not check that a spin was used.",
+      "variants": [
+        {
+          "id": "main",
+          "label": "S rests over a mid-board J lip",
+          "board": [
+            [
+              null,
+              null,
+              null,
+              { "kind": "filled", "piece": "J" },
+              { "kind": "filled", "piece": "J" },
+              { "kind": "filled", "piece": "J" },
+              { "kind": "filled", "piece": "J" },
+              { "kind": "filled", "piece": "J" },
+              null,
+              null
+            ]
+          ],
+          "active": "S",
+          "hold": null,
+          "queue": []
+        }
+      ],
+      "acceptedOutcomes": [
+        {
+          "id": "repaired-parity",
+          "label": "S over the J lip (parity repaired)",
+          "variantIds": ["main"],
+          "explanation": "Final form: with a thin J lip spanning columns 3-7 on row 0, the S piece rests flush on top of the lip with its lower row at columns 4-5 (row 1) and upper row at columns 5-6 (row 2). The lip's central columns block the standard bottom cavity, so the only recognizable 'repair' comes from the S posture choice. The mask constrains only the S cells; the J lip cells are unconstrained so any matching residue still passes. V2 matches only the final board cells.",
+          "mask": [
+            [
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" }
+            ],
+            [
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "filled", "piece": "S" },
+              { "kind": "filled", "piece": "S" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" }
+            ],
+            [
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "filled", "piece": "S" },
+              { "kind": "filled", "piece": "S" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" }
+            ]
+          ]
+        }
+      ],
+      "solutionRoutes": [
+        {
+          "id": "route-s-over-lip",
+          "label": "S rests flush over the J lip",
+          "variantId": "main",
+          "outcomeId": "repaired-parity",
+          "placements": [{ "piece": "S", "x": 4, "y": 0, "rotation": "0" }],
+          "explanation": "Hard-drop S at engine origin (4, 0). Because columns 4-5 of row 0 are occupied by the J lip, the SRS origin slides up by one so the S lower tooth rests at row 1 (columns 4-5) and the upper tooth at row 2 (columns 5-6)."
+        }
+      ]
+    },
+    {
+      "id": "mvp2-seed-allspin-clean-vs-dirty",
+      "title": "All-spin clean vs dirty aftermath",
+      "category": "All-Spin Principle",
+      "family": "all-spin",
+      "tags": ["all-spin", "aftermath", "clean"],
+      "sourceRefs": [{ "catalogId": "allspin-clean-vs-dirty" }],
+      "difficulty": 2,
+      "goal": "Recognize a clean all-spin aftermath: a single S shelf flat against a low stack with no extra hanging cell above it. The accepted outcome judges only the clean final shape; it does not detect that an all-spin was performed.",
+      "variants": [
+        {
+          "id": "main",
+          "label": "Clean isolated S shelf",
+          "board": [],
+          "active": "S",
+          "hold": null,
+          "queue": []
+        }
+      ],
+      "acceptedOutcomes": [
+        {
+          "id": "clean-aftermath",
+          "label": "Clean isolated S shelf",
+          "variantIds": ["main"],
+          "explanation": "Final form: S with its lower row flat on the floor at columns 4-5 (row 0) and upper row at columns 5-6 (row 1); nothing above the upper row. No 'hangover' cell at row 2 means the aftermath reads as clean. Final-form match only.",
+          "mask": [
+            [
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "filled", "piece": "S" },
+              { "kind": "filled", "piece": "S" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" }
+            ],
+            [
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "filled", "piece": "S" },
+              { "kind": "filled", "piece": "S" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" }
+            ]
+          ]
+        }
+      ],
+      "solutionRoutes": [
+        {
+          "id": "route-clean-s",
+          "label": "Place the clean S shelf",
+          "variantId": "main",
+          "outcomeId": "clean-aftermath",
+          "placements": [{ "piece": "S", "x": 4, "y": -1, "rotation": "0" }],
+          "explanation": "Hard-drop S at (4, -1) for an isolated two-row S shape with no overhang above it."
+        }
+      ],
+      "badTemptations": [
+        {
+          "label": "Dirty overhang residue",
+          "explanation": "Leaving an extra hanging cell above the S shelf clutters stack parity and reads as a dirty aftermath. Replay of the bad temptation is not modeled in V2; this is a final-form contrast only."
+        }
+      ]
+    },
+    {
+      "id": "mvp2-seed-allspin-scarlet",
+      "title": "Scarlet final-form recognition",
+      "category": "All-Spin Method",
+      "family": "all-spin",
+      "tags": ["all-spin", "scarlet"],
+      "sourceRefs": [{ "catalogId": "scarlet" }],
+      "difficulty": 4,
+      "goal": "Recognize the Scarlet final-form: a low central I prop with S residue on the left and Z residue on the right, the signature shelf layout used by the Scarlet method. V2 judges only the final form; the Scarlet spin sequence is not modeled.",
+      "variants": [
+        {
+          "id": "main",
+          "label": "I prop flanked by S and Z residues",
+          "board": [],
+          "active": "I",
+          "hold": null,
+          "queue": ["S", "Z"]
+        }
+      ],
+      "acceptedOutcomes": [
+        {
+          "id": "scarlet-shelf",
+          "label": "I prop + S (left) + Z (right)",
+          "variantIds": ["main"],
+          "explanation": "Final form: a horizontal I shelf flat on the floor at columns 4-7, S residue on the lower-left at columns 1-2 and upper at columns 2-3, and Z residue on the lower-right at columns 8-9 and upper at columns 7-8. The left S, central I, right Z arrangement is the recognizable Scarlet signature shape. Final-form match only.",
+          "mask": [
+            [
+              { "kind": "any" },
+              { "kind": "filled", "piece": "S" },
+              { "kind": "filled", "piece": "S" },
+              { "kind": "any" },
+              { "kind": "filled", "piece": "I" },
+              { "kind": "filled", "piece": "I" },
+              { "kind": "filled", "piece": "I" },
+              { "kind": "filled", "piece": "I" },
+              { "kind": "filled", "piece": "Z" },
+              { "kind": "filled", "piece": "Z" }
+            ],
+            [
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "filled", "piece": "S" },
+              { "kind": "filled", "piece": "S" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "filled", "piece": "Z" },
+              { "kind": "filled", "piece": "Z" },
+              { "kind": "any" }
+            ]
+          ]
+        }
+      ],
+      "solutionRoutes": [
+        {
+          "id": "route-i-then-s-then-z",
+          "label": "I prop, then S, then Z",
+          "variantId": "main",
+          "outcomeId": "scarlet-shelf",
+          "placements": [
+            { "piece": "I", "x": 4, "y": -1, "rotation": "0" },
+            { "piece": "S", "x": 1, "y": -1, "rotation": "0" },
+            { "piece": "Z", "x": 7, "y": -1, "rotation": "0" }
+          ],
+          "explanation": "Hard-drop the I at (4, -1) for the central shelf at columns 4-7; then drop S at (1, -1) and Z at (7, -1) to flank it. The Z's upper row rests at columns 7-8 because column 7 row 0 is already filled by the I prop."
+        }
+      ]
+    },
+    {
+      "id": "mvp2-seed-allspin-coral",
+      "title": "Coral final-form recognition",
+      "category": "All-Spin Method",
+      "family": "all-spin",
+      "tags": ["all-spin", "coral"],
+      "sourceRefs": [{ "catalogId": "coral" }],
+      "difficulty": 4,
+      "goal": "Recognize the Coral final-form: a flat, broad T anchor at columns 3-5 with an S residue tucked against its left shoulder forming the Coral shelf shape. V2 judges only the final form; the Coral spin sequence is not modeled.",
+      "variants": [
+        {
+          "id": "main",
+          "label": "T anchor with left S residue",
+          "board": [],
+          "active": "T",
+          "hold": null,
+          "queue": ["S"]
+        }
+      ],
+      "acceptedOutcomes": [
+        {
+          "id": "coral-shelf",
+          "label": "T anchor (center) + S residue (left)",
+          "variantIds": ["main"],
+          "explanation": "Final form: T flat across columns 3-5 (row 0) with the Coral bump at column 4 (row 1), and S tucked to the left with its lower row at columns 0-1 (row 0) and upper row at columns 1-2 (row 1). The left S shoulder running flush with the T bump is the recognizable Coral posture. Final-form match only.",
+          "mask": [
+            [
+              { "kind": "filled", "piece": "S" },
+              { "kind": "filled", "piece": "S" },
+              { "kind": "any" },
+              { "kind": "filled", "piece": "T" },
+              { "kind": "filled", "piece": "T" },
+              { "kind": "filled", "piece": "T" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" }
+            ],
+            [
+              { "kind": "any" },
+              { "kind": "filled", "piece": "S" },
+              { "kind": "filled", "piece": "S" },
+              { "kind": "any" },
+              { "kind": "filled", "piece": "T" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" }
+            ]
+          ]
+        }
+      ],
+      "solutionRoutes": [
+        {
+          "id": "route-t-then-s",
+          "label": "T anchor, then left S",
+          "variantId": "main",
+          "outcomeId": "coral-shelf",
+          "placements": [
+            { "piece": "T", "x": 3, "y": -1, "rotation": "0" },
+            { "piece": "S", "x": 0, "y": -1, "rotation": "0" }
+          ],
+          "explanation": "Hard-drop T at (3, -1) so the flat row rests at columns 3-5 (row 0) and the bump points up at column 4 (row 1). Then hard-drop S at (0, -1) to lay the left residue flat with its upper tooth at columns 1-2."
+        }
+      ]
+    },
+    {
+      "id": "mvp2-seed-allspin-amaranth",
+      "title": "Amaranth final-form recognition",
+      "category": "All-Spin Method",
+      "family": "all-spin",
+      "tags": ["all-spin", "amaranth"],
+      "sourceRefs": [{ "catalogId": "amaranth" }],
+      "difficulty": 4,
+      "goal": "Recognize the Amaranth final-form: a left-side Z side-tooth and a right-side J anchor forming the recognizable Amaranth posture. V2 judges only the final form; the Amaranth spin sequence is not modeled.",
+      "variants": [
+        {
+          "id": "main",
+          "label": "Z (left) + J anchor (right)",
+          "board": [],
+          "active": "Z",
+          "hold": null,
+          "queue": ["J"]
+        }
+      ],
+      "acceptedOutcomes": [
+        {
+          "id": "amaranth-shelf",
+          "label": "Z (left) + J anchor (right)",
+          "variantIds": ["main"],
+          "explanation": "Final form: Z at columns 4-5 (row 0) and 3-4 (row 1) - the left-side Z side-tooth - paired with a J anchor flat across columns 6-8 (row 0) with the bump at column 6 (row 1). The Z side-tooth tucked against the J bump is the recognizable Amaranth posture. Final-form match only.",
+          "mask": [
+            [
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "filled", "piece": "Z" },
+              { "kind": "filled", "piece": "Z" },
+              { "kind": "filled", "piece": "J" },
+              { "kind": "filled", "piece": "J" },
+              { "kind": "filled", "piece": "J" },
+              { "kind": "any" }
+            ],
+            [
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "filled", "piece": "Z" },
+              { "kind": "filled", "piece": "Z" },
+              { "kind": "any" },
+              { "kind": "filled", "piece": "J" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" }
+            ]
+          ]
+        }
+      ],
+      "solutionRoutes": [
+        {
+          "id": "route-z-then-j",
+          "label": "Z left side-tooth, then right J anchor",
+          "variantId": "main",
+          "outcomeId": "amaranth-shelf",
+          "placements": [
+            { "piece": "Z", "x": 3, "y": -1, "rotation": "0" },
+            { "piece": "J", "x": 6, "y": -1, "rotation": "0" }
+          ],
+          "explanation": "Hard-drop Z at (3, -1): the lower row locks at columns 4-5 and the upper row at columns 3-4. Then hard-drop J at (6, -1) for the right anchor with its bump pointing up at column 6."
+        }
+      ]
+    },
+    {
+      "id": "mvp2-seed-core-kaidan",
+      "title": "Kaidan setup/final-form recognition",
+      "category": "Core T-spin: Setup Recognizer",
+      "family": "core-tspin",
+      "tags": ["core-tspin", "kaidan"],
+      "sourceRefs": [{ "catalogId": "kaidan" }],
+      "difficulty": 3,
+      "goal": "Recognize a Kaidan T-slot final form: a T pointing into a one-cell slot under a short shoulder between two stacks. The accepted outcome checks the recognizable final-form T-slot shape, not the spin itself.",
+      "variants": [
+        {
+          "id": "center-slot",
+          "label": "Center slot, pillar at column 5",
+          "board": [
+            [
+              null,
+              null,
+              { "kind": "filled", "piece": "J" },
+              { "kind": "filled", "piece": "J" },
+              null,
+              { "kind": "filled", "piece": "J" },
+              null,
+              { "kind": "filled", "piece": "L" },
+              { "kind": "filled", "piece": "L" },
+              null
+            ]
+          ],
+          "active": "T",
+          "hold": null,
+          "queue": []
+        },
+        {
+          "id": "offset-slot",
+          "label": "Offset slot, pillar at column 4",
+          "board": [
+            [
+              null,
+              null,
+              { "kind": "filled", "piece": "J" },
+              { "kind": "filled", "piece": "J" },
+              { "kind": "filled", "piece": "J" },
+              null,
+              null,
+              { "kind": "filled", "piece": "L" },
+              { "kind": "filled", "piece": "L" },
+              null
+            ]
+          ],
+          "active": "T",
+          "hold": null,
+          "queue": []
+        }
+      ],
+      "acceptedOutcomes": [
+        {
+          "id": "kaidan-center",
+          "label": "Kaidan center T-slot",
+          "variantIds": ["center-slot"],
+          "explanation": "Final form: with shoulders at columns 2-3 (J) and 7-8 (L), the T pointing down rests its flat row on row 2 above the pillar at column 5 (row 0). The T nub at column 5, row 1 sits one row above the J pillar that fills the slot. The mask constrains only the T cells; the shoulder/pillar cells are unconstrained so different stack contents still pass. V2 matches only the final board cells.",
+          "mask": [
+            [
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" }
+            ],
+            [
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "filled", "piece": "T" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" }
+            ],
+            [
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "filled", "piece": "T" },
+              { "kind": "filled", "piece": "T" },
+              { "kind": "filled", "piece": "T" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" }
+            ]
+          ]
+        },
+        {
+          "id": "kaidan-offset",
+          "label": "Kaidan offset T-slot",
+          "variantIds": ["offset-slot"],
+          "explanation": "Final form: with shoulders at columns 2-4 (J) and 7-8 (L), the T pointing down rests its flat row on row 2 at columns 3-5 with its nub over the pillar at column 4 (row 0). The flat-row offset to the left gives a distinctively different final form from the center variant. V2 matches only the final board cells.",
+          "mask": [
+            [
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" }
+            ],
+            [
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "filled", "piece": "T" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" }
+            ],
+            [
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "filled", "piece": "T" },
+              { "kind": "filled", "piece": "T" },
+              { "kind": "filled", "piece": "T" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" }
+            ]
+          ]
+        }
+      ],
+      "solutionRoutes": [
+        {
+          "id": "route-kaidan-center",
+          "label": "T pointing down over the center pillar",
+          "variantId": "center-slot",
+          "outcomeId": "kaidan-center",
+          "placements": [{ "piece": "T", "x": 4, "y": 1, "rotation": "2" }],
+          "explanation": "Hard-drop T at (4, 1) in rotation 2: the flat row rests at row 2 cols 4-6 and the nub sinks to column 5, row 1, one row above the J pillar at column 5. The T cannot rest at y=0 because the nub would collide with the column-5 pillar."
+        },
+        {
+          "id": "route-kaidan-offset",
+          "label": "T pointing down over the offset pillar",
+          "variantId": "offset-slot",
+          "outcomeId": "kaidan-offset",
+          "placements": [{ "piece": "T", "x": 3, "y": 1, "rotation": "2" }],
+          "explanation": "Hard-drop T at (3, 1) in rotation 2: the flat row rests at row 2 cols 3-5 and the nub sinks to column 4, row 1, over the J pillar at column 4."
+        }
+      ]
+    },
+    {
+      "id": "mvp2-seed-core-parapet",
+      "title": "Parapet setup/final-form recognition",
+      "category": "Core T-spin: Setup Recognizer",
+      "family": "core-tspin",
+      "tags": ["core-tspin", "parapet"],
+      "sourceRefs": [{ "catalogId": "parapet" }],
+      "difficulty": 3,
+      "goal": "Recognize a Parapet T-slot final form: a T pointing down with its nub sinking into a one-cell gap between left and right low walls. The accepted outcome checks the recognizable final-form parapet shape, not the spin itself.",
+      "variants": [
+        {
+          "id": "main",
+          "label": "T nub sinks into the parapet gap",
+          "board": [
+            [
+              null,
+              null,
+              { "kind": "filled", "piece": "J" },
+              { "kind": "filled", "piece": "J" },
+              null,
+              { "kind": "filled", "piece": "L" },
+              { "kind": "filled", "piece": "L" },
+              null,
+              null,
+              null
+            ]
+          ],
+          "active": "T",
+          "hold": null,
+          "queue": []
+        }
+      ],
+      "acceptedOutcomes": [
+        {
+          "id": "parapet-slot",
+          "label": "Parapet T-slot",
+          "variantIds": ["main"],
+          "explanation": "Final form: low walls at columns 2-3 (J) and 5-6 (L) leave a one-cell gap at column 4. The T points down with its nub sinking into the gap at column 4, row 0 and its flat row resting across columns 3-5 on row 1. The nub-in-gap posture is the recognizable Parapet shape. Final-form match only.",
+          "mask": [
+            [
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "filled", "piece": "T" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" }
+            ],
+            [
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "filled", "piece": "T" },
+              { "kind": "filled", "piece": "T" },
+              { "kind": "filled", "piece": "T" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" }
+            ]
+          ]
+        }
+      ],
+      "solutionRoutes": [
+        {
+          "id": "route-parapet",
+          "label": "T pointing down into the gap",
+          "variantId": "main",
+          "outcomeId": "parapet-slot",
+          "placements": [{ "piece": "T", "x": 3, "y": 0, "rotation": "2" }],
+          "explanation": "Hard-drop T at (3, 0) in rotation 2: the flat row rests across columns 3-5 on row 1 while the nub sinks into the column 4 gap at row 0. The T cannot rest lower because the wall cells at columns 3 and 5 would collide with the flat row behind."
+        }
+      ]
+    },
+    {
+      "id": "mvp2-seed-core-stmb-cave-clean",
+      "title": "STMB Cave (clean) setup/final-form recognition",
+      "category": "Core T-spin: Setup Recognizer",
+      "family": "core-tspin",
+      "tags": ["core-tspin", "stmb", "cave", "clean"],
+      "sourceRefs": [{ "catalogId": "stmb-cave-clean" }],
+      "difficulty": 4,
+      "goal": "Recognize a clean STMB Cave final form: the parapet T-slot pattern plus a one-cell cave roof directly over the slot, the clean recognizable cave posture. The accepted outcome checks the recognizable shape only; the STMB Cave spin is not modeled.",
+      "variants": [
+        {
+          "id": "main",
+          "label": "Parapet slot under a one-cell roof",
+          "board": [
+            [
+              null,
+              null,
+              { "kind": "filled", "piece": "J" },
+              { "kind": "filled", "piece": "J" },
+              null,
+              { "kind": "filled", "piece": "L" },
+              { "kind": "filled", "piece": "L" },
+              null,
+              null,
+              null
+            ],
+            [null, null, null, null, null, null, null, null, null, null],
+            [
+              null,
+              null,
+              null,
+              null,
+              { "kind": "filled", "piece": "J" },
+              null,
+              null,
+              null,
+              null,
+              null
+            ]
+          ],
+          "active": "T",
+          "hold": null,
+          "queue": []
+        }
+      ],
+      "acceptedOutcomes": [
+        {
+          "id": "stmb-cave-clean-shape",
+          "label": "Parapet T-slot with a cave roof",
+          "variantIds": ["main"],
+          "explanation": "Final form: the same parapet T-slot (nub in the column-4 gap, flat row across columns 3-5 at row 1) plus a one-cell J roof floating at column 4, row 2 directly above the nub. The roof cell above the slot is the recognizable STMB Cave clean posture. The mask constrains the T cells and the roof cell; the wall cells are unconstrained. Final-form match only.",
+          "mask": [
+            [
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "filled", "piece": "T" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" }
+            ],
+            [
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "filled", "piece": "T" },
+              { "kind": "filled", "piece": "T" },
+              { "kind": "filled", "piece": "T" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" }
+            ],
+            [
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "filled", "piece": "J" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" }
+            ]
+          ]
+        }
+      ],
+      "solutionRoutes": [
+        {
+          "id": "route-stmb-cave",
+          "label": "Intended final-form placement: T pointing down into the parapet slot under the roof",
+          "variantId": "main",
+          "outcomeId": "stmb-cave-clean-shape",
+          "placements": [{ "piece": "T", "x": 3, "y": 0, "rotation": "2" }],
+          "explanation": "Intended final-form placement for the recognizable STMB Cave shape: T in rotation 2 with its nub in the column-4 gap and its flat row across columns 3-5 at row 1, sitting under the authored cave roof at column 4, row 2. A real STMB Cave reaches this posture through a spin/soft-drop sequence under the roof; V2 does not simulate spins, hold/soft-drop inputs, or piece motion from spawn. The supplied (3, 0) origin is the authored grounded hard-drop origin used by buildSolutionSteps to validate the final board form only."
+        }
+      ]
+    },
+    {
+      "id": "mvp2-seed-core-sky-prop",
+      "title": "Sky Prop setup/final-form recognition",
+      "category": "Core T-spin: Setup Recognizer",
+      "family": "core-tspin",
+      "tags": ["core-tspin", "sky-prop"],
+      "sourceRefs": [{ "catalogId": "sky-prop" }],
+      "difficulty": 4,
+      "goal": "Recognize a Sky Prop final form: a T pointing up at the top of a small column-set prop, lifted one row by an overhanging lip on each side. The accepted outcome judges only the recognizable lifted final form; the Sky Prop spin is not modeled in V2.",
+      "variants": [
+        {
+          "id": "main",
+          "label": "T uplifted one row over the prop",
+          "board": [
+            [
+              null,
+              null,
+              null,
+              null,
+              null,
+              { "kind": "filled", "piece": "L" },
+              { "kind": "filled", "piece": "L" },
+              null,
+              null,
+              null
+            ],
+            [
+              null,
+              null,
+              null,
+              null,
+              { "kind": "filled", "piece": "L" },
+              null,
+              { "kind": "filled", "piece": "L" },
+              null,
+              null,
+              null
+            ]
+          ],
+          "active": "T",
+          "hold": null,
+          "queue": []
+        }
+      ],
+      "acceptedOutcomes": [
+        {
+          "id": "sky-prop-shape",
+          "label": "T lifted one row by the prop",
+          "variantIds": ["main"],
+          "explanation": "Final form: a prop of L cells at columns 5-6 (row 0) with overhanging lips at column 4 and column 6 (row 1), and a T pointing up at row 2 (columns 4-6 flat) with its bump at column 5 (row 3). The bump-in-the-air posture is the recognizable lifted Sky Prop shape. V2 matches only the final board cells.",
+          "mask": [
+            [
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" }
+            ],
+            [
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" }
+            ],
+            [
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "filled", "piece": "T" },
+              { "kind": "filled", "piece": "T" },
+              { "kind": "filled", "piece": "T" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" }
+            ],
+            [
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "filled", "piece": "T" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" },
+              { "kind": "any" }
+            ]
+          ]
+        }
+      ],
+      "solutionRoutes": [
+        {
+          "id": "route-sky-prop",
+          "label": "Hard-drop T up over the lips",
+          "variantId": "main",
+          "outcomeId": "sky-prop-shape",
+          "placements": [{ "piece": "T", "x": 4, "y": 1, "rotation": "0" }],
+          "explanation": "Hard-drop T at (4, 1) in rotation 0 (bump pointing up): the flat row rests at row 2 (columns 4-6) and the bump lands at row 3 column 5. The T cannot rest at y=0 because the overhanging lips at row 1 columns 4 and 6 would collide with the flat row."
+        }
+      ]
+    }
+  ]
+}

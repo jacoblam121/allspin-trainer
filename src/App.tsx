@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import sourceCatalogJson from "./drills/sourceCatalog.json";
-import v2SmokePackJson from "./drills/packs/v2-smoke.json";
+import mvp2SeedPackJson from "./drills/packs/mvp2-seed.json";
 import { loadDrillPackV2, loadSourceCatalog } from "./drills/drillLoaderV2.ts";
 import {
   playableStartFromVariant,
@@ -65,7 +65,7 @@ function PackLoadFatal({ message }: { message: string }) {
 const packLoad: PackLoad = (() => {
   try {
     const catalog = loadSourceCatalog(sourceCatalogJson);
-    const pack = loadDrillPackV2(v2SmokePackJson, catalog);
+    const pack = loadDrillPackV2(mvp2SeedPackJson, catalog);
     return { kind: "ok", pack, catalog };
   } catch (err) {
     return { kind: "error", message: String(err) };
